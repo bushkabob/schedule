@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native'
 import Dialog from 'react-native-dialog'
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './redux';
-import { addClass, removeClass } from './redux/classSlice';
+import { addAssignmentType, removeAssignmentType } from './redux/assignmentTypeSlice';
 
 const RightAction = () => (
     <View style={{backgroundColor: "red", width: "100%", alignItems: "flex-end", justifyContent: "center", padding: 10}}>
@@ -15,11 +15,11 @@ const RightAction = () => (
     </View>
 )
 
-interface AddClassHeaderRightProps {
+interface HeaderRightProps {
     updateEnteringClass: (value: React.SetStateAction<boolean>) => void
 }
 
-export const AddClassHeaderRight = (props: AddClassHeaderRightProps) => {
+const HeaderRight = (props: HeaderRightProps) => {
     return (
         <TouchableOpacity onPress={() => {props.updateEnteringClass(true)}}>
             <Ionicons name="add" size={32}/>
@@ -27,25 +27,17 @@ export const AddClassHeaderRight = (props: AddClassHeaderRightProps) => {
     )
 }
 
-const ClassSettings = () => {
-    const classes = useSelector((state: RootState) => state.classes)
+const UserDefinedSettings = () => {
+    //const [classes, updateClasses] = useState<string[]>([]);
+    const availableOptions = useSelector((state: RootState) => state.assignmentTypes)
     const dispatch = useDispatch()
-    const [isEnteringClass, updateEnteringClass] = useState(false);
-    const [newName, updateNewName] = useState("");
+    const [isEntering, updateEntering] = useState(false);
+    const [newItem, updateNewItem] = useState("");
     const navigation = useNavigation()
 
-    const removeClassAtIndex = (item: string) => {
-        // updateClasses((prevState) => {
-        //     //slice out the class at the index
-        //     const newClasses = prevState.slice(0, index).concat(prevState.slice(index + 1));
-        //     return newClasses;
-        // })
-        dispatch(removeClass({ name: item }));
-    }
-
-    const renderRow = (item: string, _: number): JSX.Element => {
+    const renderRow = (item: string, index: number): JSX.Element => {
         return (
-            <Swipeable renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
+            <Swipeable key={item} renderRightActions={RightAction} onSwipeableOpen={()=>dispatch(removeAssignmentType({ name: item }))}>
                 <Cell title={item} />
             </Swipeable>
         )
@@ -53,27 +45,27 @@ const ClassSettings = () => {
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerRight: () => <AddClassHeaderRight updateEnteringClass={()=>updateEnteringClass(true)} />
+            headerRight: () => <HeaderRight updateEnteringClass={()=>updateEntering(true)} />
         })
     },[])
 
     //Handle adding a class to the list
-    const handleCancel = () => {updateEnteringClass(false), updateNewName("")}
+    const handleCancel = () => {updateEntering(false), updateNewItem("")}
     const handleAdd = () => {
         // updateClasses((prev) =>[...prev, newName])
-        dispatch(addClass({ name:newName }))
-        updateEnteringClass(false)
-        updateNewName("")
+        dispatch(addAssignmentType({name: newItem}))
+        updateEntering(false)
+        updateNewItem("")
     }
     const handleChange = (text: string) => {
-        updateNewName(text)
+        updateNewItem(text)
     }
 
     return(
         <View style={styles.container}>
             <TableView style={styles.tableView}>
                 <FlatList
-                    data={classes}
+                    data={availableOptions}
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={({ item, index }) => renderRow(item, index)}
                     ItemSeparatorComponent={({ highlighted }) => (
@@ -82,14 +74,14 @@ const ClassSettings = () => {
                     showsVerticalScrollIndicator
                 />
             </TableView>
-            <Dialog.Container visible={isEnteringClass}>
+            <Dialog.Container visible={isEntering}>
                 <Dialog.Title>Add class</Dialog.Title>
                 <Dialog.Description>
-                Please enter the name of the class you would like to add
+                Please enter the name of your custom assignment type
                 </Dialog.Description>
                 <Dialog.Input placeholder='Class Name' onChangeText={handleChange} />
                 <Dialog.Button label="Cancel" onPress={handleCancel} />
-                <Dialog.Button label="Add" bold onPress={handleAdd} color={(newName==""||classes.includes(newName))?"gray":"#007ff9"} disabled={(newName==""||classes.includes(newName))} />
+                <Dialog.Button label="Add" bold onPress={handleAdd} color={(newItem==""||availableOptions.includes(newItem))?"gray":"#007ff9"} disabled={(newItem==""||availableOptions.includes(newItem))} />
             </Dialog.Container>
         </View>
     );
@@ -106,4 +98,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default ClassSettings;
+export default UserDefinedSettings;

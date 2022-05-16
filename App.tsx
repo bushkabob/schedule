@@ -5,11 +5,11 @@ import { Provider } from 'react-redux';
 
 import redux from './redux/configureStore'
 import { HomeHeaderLeft, HomeHeaderRight } from './HomeHeader';
-import AddAssingment from './AddAssingment';
 import HomeScreen from './Home';
 import SettingsScreen from './Settings'
 import AddClass from "./ClassSettings"
-import SelectOptionScreen from './SelectOptionScreen';
+import AddAssignmentNavigator from './Add Assingment/AddAssingmentNavigator';
+import AddAssignmentType from "./AssignmentTypeSettings"
 
 const Stack = createNativeStackNavigator()
 
@@ -24,10 +24,14 @@ export default function App() {
               headerRight: () => (<HomeHeaderRight/>),
               headerLeft: () => (<HomeHeaderLeft/>)
             }} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="AddAssingment" component={AddAssingment} options={{title: "Add Assingment"}}/>
-            <Stack.Screen name="AddClass" component={AddClass} options={{title: "Edit Classes"}}/>
-            <Stack.Screen name="SelectListOption" component={SelectOptionScreen} />
+            <Stack.Group>
+              <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="AddClass" component={AddClass} options={{title: "Edit Classes"}}/>
+              <Stack.Screen name="EditAssignmentTypes" component={AddAssignmentType} options={{ title: "Edit Assignment Types" }} />
+            </Stack.Group>
+            <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
+              <Stack.Screen name="AddAssignmentNavigator" component={AddAssignmentNavigator}/>
+            </Stack.Group>
           </Stack.Navigator>
         </NavigationContainer>
       </PersistGate>

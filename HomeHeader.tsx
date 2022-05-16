@@ -1,12 +1,12 @@
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { SettingsProps, AddAssingmentProps } from "./types";
+import { SettingsProps, AddAssignmentNavigatorProps } from "./types";
 
 export const HomeHeaderRight = () => {
-    const navigation = useNavigation<AddAssingmentProps>()
+    const navigation = useNavigation<AddAssignmentNavigatorProps>()
     return (
-        <TouchableOpacity onPress={() => navigation.navigate("AddAssingment",{})}>
+        <TouchableOpacity onPress={() => navigation.navigate("AddAssignmentNavigator",{})}>
             <Ionicons name="add" size={32}/>
         </TouchableOpacity>
     )

@@ -1,9 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-interface AssingmentInfo {
-
-}
-
 type changeClassProps = { name: string }
 
 const initialState: string[] = []
