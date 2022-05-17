@@ -44,6 +44,13 @@ const assingmentSlice = createSlice({
             }
             return state
         },
+        updateAssignment(state, action: PayloadAction<{ id: string, assignment: AssignmentInfo }>) {
+            const index = state.findIndex(assignment => assignment.id === action.payload.id)
+            if (index !== -1) {
+                state[index] = { ...state[index], ...action.payload.assignment }
+            }
+            return state
+        },
         removeAssignment(state, action: PayloadAction<{id: string}>) {
             const index = state.findIndex(assignment => assignment.id === action.payload.id)
             state = [...state.slice(0, index), ...state.slice(index + 1)]
@@ -57,5 +64,5 @@ const assingmentSlice = createSlice({
     }
 })
 
-export const { addAssignment, removeAssignment, removeAllAssignments, updateAssignmentCompleted } = assingmentSlice.actions;
+export const { addAssignment, removeAssignment, removeAllAssignments, updateAssignmentCompleted, updateAssignment } = assingmentSlice.actions;
 export default assingmentSlice.reducer;

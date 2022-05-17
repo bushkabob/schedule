@@ -45,7 +45,7 @@ const ClassSettings = () => {
 
     const renderRow = (item: string, _: number): JSX.Element => {
         return (
-            <Swipeable renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
+            <Swipeable key={item} renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
                 <Cell title={item} />
             </Swipeable>
         )

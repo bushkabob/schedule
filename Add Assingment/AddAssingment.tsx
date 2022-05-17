@@ -3,12 +3,14 @@ import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { TableView, Cell, Separator } from 'react-native-tableview-simple';
 import { SyntheticEvent, useLayoutEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { AddAssignmentRouteProps, SelectScreenProps } from './types';
+import { SelectScreenProps } from './types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addAssignment } from '../redux/assingmentsSlice'
+import { addAssignment, updateAssignment, StoredAssignmentInfo } from '../redux/assingmentsSlice'
+import { AddAssignmentRouteProps } from '../types';
+import { AddAssignmentRouteProps as AddAssignmentRouteProps2 } from './types';
 
 enum pickerState {
     none,
@@ -22,30 +24,41 @@ export enum selectType {
 }
 
 const AddAssingment = () => {
-
+    //Extract the assignment from the route
+    const route = useRoute<AddAssignmentRouteProps | AddAssignmentRouteProps2>();
+    const assignment = "assignment" in route.params ? route.params.assignment : undefined;
+    
     const dispatch = useDispatch()
     const initialDate = new Date(Date.now())
     initialDate.setHours(23, 59, 59)
     const classOptions = useSelector((state: RootState) => state.classes);
     const typeOptions = useSelector((state: RootState) => state.assignmentTypes);
-    const [assignmentName, setAssingmentName] = useState("");
-    const [selectedClass, setSelectedClass] = useState(classOptions[0]);
-    const [selectedType, setType] = useState(typeOptions[0])
-    const [selectedDay, setSelectedDay] = useState(initialDate);
+    const [assignmentName, setAssingmentName] = useState(typeof assignment !== "undefined" ? assignment.name : "");
+    const [selectedClass, setSelectedClass] = useState(typeof assignment !== "undefined" ? assignment.class : classOptions[0]);
+    const [selectedType, setType] = useState(typeof assignment !== "undefined" ? assignment.type : typeOptions[0]);
+    const [selectedDay, setSelectedDay] = useState(typeof assignment !== "undefined" ? new Date(assignment.date) : initialDate);
     const [datePickerVisible, setDatePickerVisible] = useState(pickerState.none);
     const navigation = useNavigation<SelectScreenProps>()
 
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerRight: ()=><Button title='Add' onPress={() => saveAssignment()} />,
-            headerBackVisible: false,
-            headerLeft: ()=><Button title='Cancel' onPress={() => navigation.goBack()} />
+            headerRight: ()=><Button title={typeof assignment !== "undefined" ? 'Update' : 'Add'} onPress={onPress} />,
+            headerBackVisible: typeof assignment !== "undefined",
+            headerLeft: typeof assignment !== "undefined" ? undefined : ()=><Button title='Cancel' onPress={() => navigation.goBack()} />
         })
     }, [selectedClass, assignmentName, selectedType, selectedClass, selectedDay])
 
-    const saveAssignment = () => {
+    const onPress = () => {
+        typeof assignment !== "undefined" ? updateAssignmentData(assignment.id) : saveAssignmentData()
+    }
+
+    const saveAssignmentData = () => {
         dispatch(addAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed: false } }))
         navigation.goBack()
+    }
+
+    const updateAssignmentData = (assignmentId: string) => {
+        dispatch(updateAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed: false }, id: assignmentId }))
     }
 
     const onDateChange = (_: SyntheticEvent<Readonly<{ timestamp: number; }>, Event>, date: Date | undefined) => {
@@ -69,7 +82,7 @@ const AddAssingment = () => {
             <ScrollView style={styles.container} scrollEnabled>
                 <TableView style={styles.tableView}>
                     <Cell cellContentView={
-                        <TextInput placeholder='Assignment Name' allowFontScaling style={styles.textInput} onChangeText={(text)=>(setAssingmentName(text))} />
+                        <TextInput defaultValue={assignmentName} placeholder='Assignment Name' allowFontScaling style={styles.textInput} onChangeText={(text)=>(setAssingmentName(text))} />
                     } />
                     <Separator />
                     <Cell cellStyle="RightDetail" title="Class" detail={selectedClass} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { options: classOptions, selected: selectedClass, updateSelected: (value: string) => setSelectedClass(value)})}/>

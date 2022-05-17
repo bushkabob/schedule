@@ -7,7 +7,7 @@ const Stack = createNativeStackNavigator()
 const AddAssignmentNavigator = () => {
     return (
         <Stack.Navigator initialRouteName="AddAssignment" >
-            <Stack.Screen name="AddAssignment" component={AddAssingment} options={{title: "Add Assignment"}} />
+            <Stack.Screen name="AddAssignment" initialParams={{}} component={AddAssingment} options={{title: "Add Assignment"}} />
             <Stack.Screen name="SelectListOption" component={SelectOptionScreen} />
         </Stack.Navigator>
     )

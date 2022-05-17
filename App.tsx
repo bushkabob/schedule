@@ -10,6 +10,8 @@ import SettingsScreen from './Settings'
 import AddClass from "./ClassSettings"
 import AddAssignmentNavigator from './Add Assingment/AddAssingmentNavigator';
 import AddAssignmentType from "./AssignmentTypeSettings"
+import AddAssignment from './Add Assingment/AddAssingment';
+import SelectOptionScreen from './Add Assingment/SelectOptionScreen';
 
 const Stack = createNativeStackNavigator()
 
@@ -20,14 +22,16 @@ export default function App() {
       <PersistGate persistor={store.persistor}>
         <NavigationContainer>
           <Stack.Navigator initialRouteName='Home'>
-            <Stack.Screen name='Home' component={HomeScreen} options={{
-              headerRight: () => (<HomeHeaderRight/>),
-              headerLeft: () => (<HomeHeaderLeft/>)
-            }} />
             <Stack.Group>
+              <Stack.Screen name='Home' component={HomeScreen} options={{
+                headerRight: () => (<HomeHeaderRight/>),
+                headerLeft: () => (<HomeHeaderLeft/>)
+              }} />
+              <Stack.Screen name='AddAssignment' component={AddAssignment} options={{title: "Edit Assignment"}} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
               <Stack.Screen name="AddClass" component={AddClass} options={{title: "Edit Classes"}}/>
               <Stack.Screen name="EditAssignmentTypes" component={AddAssignmentType} options={{ title: "Edit Assignment Types" }} />
+              <Stack.Screen name="SelectListOption" component={SelectOptionScreen} />
             </Stack.Group>
             <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
               <Stack.Screen name="AddAssignmentNavigator" component={AddAssignmentNavigator}/>

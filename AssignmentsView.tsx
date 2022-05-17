@@ -1,11 +1,14 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, Animated } from "react-native";
 import { useState, useEffect } from "react";
-import { updateAssignmentCompleted, StoredAssignmentInfo } from "./redux/assingmentsSlice"
+import { updateAssignmentCompleted, StoredAssignmentInfo, removeAssignment } from "./redux/assingmentsSlice"
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { useDispatch } from "react-redux";
 import { Accelerometer } from 'expo-sensors';
 import { Subscription } from "expo-sensors/build/Pedometer";
-
+import { Swipeable } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { AddAssigmentProps } from "./types";
 interface DateAssignments {
     date: string,
     isFirstofMonth: boolean,
@@ -91,14 +94,46 @@ interface AssignmentCellProps {
 
 const AssignmentCell = (props: AssignmentCellProps) => {
     const dispatch = useDispatch()
+    const navigation = useNavigation<AddAssigmentProps>()
+
+    const RightAction = (_: Animated.AnimatedInterpolation, dragX: Animated.AnimatedInterpolation, assignment: StoredAssignmentInfo) => {
+        //Animations for slide buttons
+        const scaleDelete = dragX.interpolate({
+            inputRange: [-40,0], 
+            outputRange: [1,0],
+            extrapolate: "clamp",
+        });
+        const scaleEdit = dragX.interpolate({
+            inputRange: [-90,0], 
+            outputRange: [1,0],
+            extrapolate: "clamp",
+        });
+
+        return (
+            <View style={{flexDirection: "row"}}>
+                <Animated.View style={[{borderRadius: 30, backgroundColor: "gray", alignItems: "flex-end", justifyContent: "center", padding: 10, marginRight: 5}, {transform: [{scale: scaleEdit}]}]}>
+                    <Ionicons name='ellipsis-horizontal-circle-outline' color={"white"} size={24} onPress={()=>navigation.navigate("AddAssignment",{ assignment: assignment })} />
+                </Animated.View>
+                <Animated.View style={[{borderRadius: 30, backgroundColor: "red", alignItems: "flex-end", justifyContent: "center", padding: 10}, {transform: [{scale: scaleDelete}]}]}>
+                    <Ionicons name='trash-outline' color={"white"} size={24} onPress={()=>dispatch(removeAssignment({ id: assignment.id }))} />
+                </Animated.View>
+            </View>
+        );
+    }
 
     return (
         <View style={{flexDirection: "column", flexWrap: "wrap", flex:3.5}}>
             {props.data.map((assignment) => {
                 const isOverdue = new Date(assignment.date) < new Date();
-                return (<View style={{width:"100%", paddingBottom: 10, paddingRight: 10}} key={assignment.id} >
-                            <BouncyCheckbox isChecked={assignment.completed} disableBuiltInState  style={{flexDirection: "row-reverse"}} textStyle={isOverdue?{color:"red"}:{}} textContainerStyle={{flex: 1, flexDirection: "row", justifyContent: "flex-start"}} text={assignment.name + " - " + assignment.class} onPress={() => (props.setOldAssignment({...assignment, completed: !assignment.completed}), dispatch(updateAssignmentCompleted({id: assignment.id, completed: !assignment.completed})))} />
-                        </View>)
+                return (
+                    <View style={{width:"100%", paddingRight: 10, paddingBottom: 5}} key={assignment.id} >
+                        <Swipeable containerStyle={{backgroundColor: "white"}} renderRightActions={(progress, dragX) => RightAction(progress, dragX, assignment)}>
+                            <View style={{width:"100%", padding: 10, backgroundColor: "white"}}>
+                                <BouncyCheckbox isChecked={assignment.completed} disableBuiltInState  style={{flexDirection: "row-reverse"}} textStyle={isOverdue?{color:"red"}:{}} textContainerStyle={{flex: 1, flexDirection: "row", justifyContent: "flex-start"}} text={assignment.name + " - " + assignment.class} onPress={() => (props.setOldAssignment({...assignment, completed: !assignment.completed}), dispatch(updateAssignmentCompleted({id: assignment.id, completed: !assignment.completed})))} />
+                            </View>
+                        </Swipeable>
+                    </View>
+                )
             })}
         </View>
     )

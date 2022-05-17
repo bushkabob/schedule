@@ -1,8 +1,8 @@
-import { View, StyleSheet, FlatList, Button } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { SelectScreenProps, SelectScreenRouteProps } from "./types";
+import { View, StyleSheet, FlatList } from "react-native";
+import { useRoute } from "@react-navigation/native";
+import { SelectScreenRouteProps } from "./types";
 import { TableView, Separator, Cell } from "react-native-tableview-simple";
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 
 const SelectOptionScreen = () => {
     const route = useRoute<SelectScreenRouteProps>();
