@@ -1075,7 +1075,7 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
-"@expo/config-plugins@^4.0.2", "@expo/config-plugins@4.1.0":
+"@expo/config-plugins@^4.0.14", "@expo/config-plugins@^4.0.2", "@expo/config-plugins@4.1.0":
   "integrity" "sha512-+Uq7kzi1StUZZZivnnqNV6+v8b+SMF6MDgH+cEZxCoM9uwLXOK0rTAURzBGtl+C6EEbKnoZmnKGuzABBGPRP7A=="
   "resolved" "https://registry.npmjs.org/@expo/config-plugins/-/config-plugins-4.1.0.tgz"
   "version" "4.1.0"
@@ -2754,6 +2754,14 @@
   "version" "0.6.5"
   dependencies:
     "compare-versions" "^3.4.0"
+    "invariant" "^2.2.4"
+
+"expo-sensors@^11.3.0":
+  "integrity" "sha512-rCvvNdgJ5N9ws30HI9oZvugacRO83OeisayjnuOtiCWFAl7ISQBid8/1htD6KXGbi4i0AyvD4Cn2nKTNkmdBVA=="
+  "resolved" "https://registry.npmjs.org/expo-sensors/-/expo-sensors-11.3.0.tgz"
+  "version" "11.3.0"
+  dependencies:
+    "@expo/config-plugins" "^4.0.14"
     "invariant" "^2.2.4"
 
 "expo-splash-screen@~0.14.1":

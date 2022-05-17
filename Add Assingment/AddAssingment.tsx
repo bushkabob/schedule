@@ -23,9 +23,7 @@ export enum selectType {
 
 const AddAssingment = () => {
 
-    const route = useRoute<AddAssignmentRouteProps>();
     const dispatch = useDispatch()
-    //const initialAssignmentType = route.params.selectedAssigmentType ? route.params.selectedAssigmentType : 
     const initialDate = new Date(Date.now())
     initialDate.setHours(23, 59, 59)
     const classOptions = useSelector((state: RootState) => state.classes);
@@ -35,7 +33,6 @@ const AddAssingment = () => {
     const [selectedType, setType] = useState(typeOptions[0])
     const [selectedDay, setSelectedDay] = useState(initialDate);
     const [datePickerVisible, setDatePickerVisible] = useState(pickerState.none);
-
     const navigation = useNavigation<SelectScreenProps>()
 
     useLayoutEffect(() => {
@@ -44,10 +41,10 @@ const AddAssingment = () => {
             headerBackVisible: false,
             headerLeft: ()=><Button title='Cancel' onPress={() => navigation.goBack()} />
         })
-    }, [selectedClass, assignmentName, selectedType, selectedClass])
+    }, [selectedClass, assignmentName, selectedType, selectedClass, selectedDay])
 
     const saveAssignment = () => {
-        dispatch(addAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString() }}))
+        dispatch(addAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed: false } }))
         navigation.goBack()
     }
 

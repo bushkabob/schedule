@@ -5,6 +5,7 @@ interface AssignmentInfo {
     name: string
     type: string
     date: string
+    completed: boolean
 }
 
 export interface StoredAssignmentInfo extends AssignmentInfo {
@@ -22,17 +23,25 @@ const assingmentSlice = createSlice({
         addAssignment(state, action: PayloadAction<AddAssingmentProps>) {
             const id = action.payload.assignment.class + action.payload.assignment.name
             const postfix = state.reduce((acc, cur) => {
-                const curId = cur.class + cur.name
-                if (curId.startsWith(id)) {
-                    const postfix = parseInt(curId.substring(id.length))
-                    if (postfix > acc) {
-                        acc = postfix
+                if (cur.id.startsWith(id)) {
+                    //extract the postfix from the id
+                    const postfix = parseInt(cur.id.replace(/[^0-9\.]/g, ''), 10);
+                    if (postfix >= acc) {
+                        acc = postfix;
                     }
                 }
                 return acc
             }, 0)
             const newAssignment = { ...action.payload.assignment, id: id + (postfix + 1) }
-            state = [...state, newAssignment]
+            const index = state.findIndex(assignment => new Date(assignment.date) > new Date(newAssignment.date))
+            state = index === -1 ? [...state, newAssignment] : [...state.slice(0, index), newAssignment, ...state.slice(index)]
+            return state
+        },
+        updateAssignmentCompleted(state, action: PayloadAction<{ id: string, completed: boolean }>) {
+            const index = state.findIndex(assignment => assignment.id === action.payload.id)
+            if (index !== -1) {
+                state[index].completed = action.payload.completed
+            }
             return state
         },
         removeAssignment(state, action: PayloadAction<{id: string}>) {
@@ -48,5 +57,5 @@ const assingmentSlice = createSlice({
     }
 })
 
-export const { addAssignment, removeAssignment, removeAllAssignments } = assingmentSlice.actions;
+export const { addAssignment, removeAssignment, removeAllAssignments, updateAssignmentCompleted } = assingmentSlice.actions;
 export default assingmentSlice.reducer;

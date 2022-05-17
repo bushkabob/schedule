@@ -1,4 +1,4 @@
-import { View, SafeAreaView, StyleSheet, Text, FlatList, Touchable } from "react-native";
+import { View, SafeAreaView, StyleSheet, Text, FlatList } from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
@@ -7,9 +7,11 @@ import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import GestureRecognizer from "react-native-swipe-gestures";
 import { StoredAssignmentInfo } from "./redux/assingmentsSlice";
+import AssignmentsView from "./AssignmentsView";
 
 const HomeScreen = () => {
-    const assignments = useSelector((state: RootState) => state.assignments)
+    //get all assignment from redux store that have not been completed or are not due yet
+    const assignments = useSelector((state: RootState) => state.assignments.filter(assignment => !assignment.completed || assignment.date > new Date().toISOString()));
     const date = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(date)
     const [selectedDate, setSelectDate] = useState(date)
@@ -32,13 +34,15 @@ const HomeScreen = () => {
 
     //organize the asssignments into an array that contains objects with the date and the assignments for that date
     const organizeAssignments = (assignments: StoredAssignmentInfo[]) => {
-        const organizedAssignments: { date: string, assignments: StoredAssignmentInfo[] }[] = [];
-        console.log(assignments)
+        const organizedAssignments: { date: string, isFirstofMonth: boolean, assignments: StoredAssignmentInfo[] }[] = [];
+        var currentMonth = 0;
         assignments.forEach((assignment) => {
-            const assignmentDate = new Date(assignment.date).toDateString();
-            const assignmentIndex = organizedAssignments.findIndex((assignment) => assignment.date === assignmentDate);
+            const assignmentDate = new Date(assignment.date)
+            const assignmentIndex = organizedAssignments.findIndex((assignment) => assignment.date === assignmentDate.toDateString());
             if (assignmentIndex === -1) {
-                organizedAssignments.push({ date: assignmentDate, assignments: [assignment] })
+                const monthMatch = assignmentDate.getMonth() === currentMonth;
+                organizedAssignments.push({ date: assignmentDate.toDateString(), assignments: [assignment], isFirstofMonth: !monthMatch })
+                currentMonth = assignmentDate.getMonth();
             } else {
                 organizedAssignments[assignmentIndex].assignments.push(assignment)
             }
@@ -71,7 +75,6 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
         const month = forDate.getMonth()
         const year = forDate.getFullYear()
         const date = forDate.getDate() - forDate.getDay()
-        const firstDay = new Date(year, month, date)
         const dates: [string, Date, boolean][] = []
         const daysOfTheWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         for (let i = 0; i < 7; i++) {
@@ -108,40 +111,6 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
         </View>
     );
 
-}
-
-interface DateAssignments {
-    date: string,
-    assignments: StoredAssignmentInfo[]
-}
-interface AssignmentsViewProps {
-    data: DateAssignments[]
-}
-
-const AssignmentsView = (props: AssignmentsViewProps) => {
-    const renderItem = (item: DateAssignments) => {
-        console.log(props.data)
-        return (
-            <View style={{"paddingVertical": 10, "backgroundColor": "white", flexDirection: "row"}} >
-                <View style={{flex:1}} >
-                    <Text>{item.date}</Text>
-                </View>
-                <View style={{flexDirection: "column", flexWrap: "wrap", flex:3.5}}>
-                    {item.assignments.map((assignment) => {
-                        return (<View style={{flex:3}} key={assignment.id} >
-                                    <Text>{assignment.name}</Text>
-                                </View>)
-                    })}
-                </View>
-            </View> 
-        )
-    }
-    console.log (props.data)
-    return (
-        <View style={styles.assingmentView}>
-            <FlatList ItemSeparatorComponent={()=><View style={styles.line}/>} keyExtractor={(item: DateAssignments, index: number) => {return item.date}} style={{height: "100%", width: "100%", paddingLeft: 10}} scrollEnabled data={props.data}  renderItem={({ item }) => renderItem(item)} />
-        </View>
-    )
 }
 
 /*const Calendar = () => {
@@ -224,12 +193,6 @@ const styles = StyleSheet.create({
     container: {
       width: "100%",
     },
-    assingmentView: {
-        flex: 1,
-        width: "100%",
-        alignItems: "center",
-        marginTop: 5,
-    },
     calendarView: {
       width: '100%',
       height: '100%',
@@ -250,11 +213,6 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
     },
-    line: {
-        borderBottomColor: 'black',
-        borderBottomWidth: 1,
-        width: "100%",
-    }
 });
 
 export default HomeScreen;
