@@ -10,8 +10,6 @@ import { StoredAssignmentInfo } from "./redux/assingmentsSlice";
 import AssignmentsView from "./AssignmentsView";
 
 const HomeScreen = () => {
-    //get all assignment from redux store that have not been completed or are not due yet
-    const assignments = useSelector((state: RootState) => state.assignments.filter(assignment => !assignment.completed || assignment.date > new Date().toISOString()));
     const date = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(date)
     const [selectedDate, setSelectDate] = useState(date)
@@ -32,30 +30,12 @@ const HomeScreen = () => {
         })
     }
 
-    //organize the asssignments into an array that contains objects with the date and the assignments for that date
-    const organizeAssignments = (assignments: StoredAssignmentInfo[]) => {
-        const organizedAssignments: { date: string, isFirstofMonth: boolean, assignments: StoredAssignmentInfo[] }[] = [];
-        var currentMonth = 0;
-        assignments.forEach((assignment) => {
-            const assignmentDate = new Date(assignment.date)
-            const assignmentIndex = organizedAssignments.findIndex((assignment) => assignment.date === assignmentDate.toDateString());
-            if (assignmentIndex === -1) {
-                const monthMatch = assignmentDate.getMonth() === currentMonth;
-                organizedAssignments.push({ date: assignmentDate.toDateString(), assignments: [assignment], isFirstofMonth: !monthMatch })
-                currentMonth = assignmentDate.getMonth();
-            } else {
-                organizedAssignments[assignmentIndex].assignments.push(assignment)
-            }
-        })
-        return organizedAssignments;
-    }
-
     return (
         <View style={styles.container}>
             <StatusBar style="auto" />
             <SafeAreaView style={styles.calendarView}>
                <SwipeableCalendar selectedDate={new Date(selectedDate)} setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  forDate={new Date(currentDate)} decrement={decrementDate} increment={incrementDate} />
-                <AssignmentsView data={organizeAssignments(assignments)} />
+                <AssignmentsView selectedDate={currentDate} />
             </SafeAreaView>
         </View>
     );

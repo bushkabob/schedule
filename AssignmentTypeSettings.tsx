@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Appearance } from 'react-native'
 import { Cell, TableView, Separator } from 'react-native-tableview-simple';
 import { FlatList, Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +7,8 @@ import { useNavigation } from '@react-navigation/native'
 import Dialog from 'react-native-dialog'
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './redux';
-import { addAssignmentType, removeAssignmentType } from './redux/assignmentTypeSlice';
+import { addAssignmentType, removeAssignmentType, reorderAssignmentTypes } from './redux/assignmentTypeSlice';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 const RightAction = () => (
     <View style={{backgroundColor: "red", width: "100%", alignItems: "flex-end", justifyContent: "center", padding: 10}}>
@@ -35,11 +36,14 @@ const UserDefinedSettings = () => {
     const [newItem, updateNewItem] = useState("");
     const navigation = useNavigation()
 
-    const renderRow = (item: string, index: number): JSX.Element => {
+    const renderRow = (item: string, index: number | undefined, drag: ()=>void, isActive: boolean): JSX.Element => {
         return (
-            <Swipeable key={item} renderRightActions={RightAction} onSwipeableOpen={()=>dispatch(removeAssignmentType({ name: item }))}>
-                <Cell title={item} />
-            </Swipeable>
+            <ScaleDecorator>
+                <Swipeable key={item} renderRightActions={RightAction} onSwipeableOpen={()=>dispatch(removeAssignmentType({ name: item }))}>
+                    <Cell title={item} cellAccessoryView={<Ionicons onLongPress={drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"}/>} />
+                </Swipeable>
+                {typeof index !== "undefined" && index < availableOptions.length-1 && <Separator isHidden={isActive} />}
+            </ScaleDecorator>
         )
     }
 
@@ -64,14 +68,14 @@ const UserDefinedSettings = () => {
     return(
         <View style={styles.container}>
             <TableView style={styles.tableView}>
-                <FlatList
+                <DraggableFlatList
                     data={availableOptions}
                     keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item, index }) => renderRow(item, index)}
-                    ItemSeparatorComponent={({ highlighted }) => (
-                        <Separator isHidden={highlighted} />
-                    )}
-                    showsVerticalScrollIndicator
+                    renderItem={({ item, drag, isActive, index }) => (renderRow(item, index, drag, isActive))}
+                    style={{ height: "100%" }}
+                    onDragEnd={({ data }) => dispatch(reorderAssignmentTypes(data))}
+                    dragHitSlop={{left: -50}}
+                    ListFooterComponent={<View></View>}
                 />
             </TableView>
             <Dialog.Container visible={isEntering}>

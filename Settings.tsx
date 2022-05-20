@@ -1,29 +1,74 @@
-import { View, StyleSheet } from "react-native"
+import { View, StyleSheet, FlatList, ListRenderItemInfo } from "react-native"
 import { StatusBar } from 'expo-status-bar';
-import { Cell, TableView } from "react-native-tableview-simple";
+import { Cell, Separator, TableView } from "react-native-tableview-simple";
 import { ScrollView } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import { AddClassProps } from "./types";
 import { useDispatch } from "react-redux";
 import { removeAllAssignments } from "./redux/assingmentsSlice";
+import { useState } from "react";
+import { CellInterface } from "react-native-tableview-simple/lib/typescript/components/Cell";
+
+interface CellData {
+    title: string,
+    func: ()=>void,
+    accessory: CellInterface["accessory"]
+}
 
 const Settings = () => {
     const navigation = useNavigation<AddClassProps>()
     const dispatch = useDispatch()
+    const [separatorHidden, setSeparatorHidden] = useState([false, false])
+    const cellData: CellData[] = [{title: "Classes", func: ()=>navigation.navigate("AddClass",{}), accessory: "DisclosureIndicator"}, {title: "Assignment Type", func: ()=>navigation.navigate("EditAssignmentTypes",{}), accessory: "DisclosureIndicator"}, {title: "Clear Assignments", func: ()=>{dispatch(removeAllAssignments())}, accessory: undefined}]
+
+
+    const changeSeparatorHidden = (setHidden: boolean, index: number) => {
+        const newSeparatorHidden = [...separatorHidden]
+        newSeparatorHidden[index] = setHidden
+        setSeparatorHidden(newSeparatorHidden)
+    }
+
+    //Function for rendering cells
+    const renderItem = ({item, separators}: {item: CellData, separators: ListRenderItemInfo<CellData>["separators"]}) => {
+        return (
+            <Cell 
+                title={item.title} 
+                accessory={item.accessory} 
+                onPress={item.func} 
+                onHighlightRow={separators.highlight}
+                onUnHighlightRow={separators.unhighlight} 
+            />
+        )
+    }
 
     return(
         <View>
             <StatusBar style="auto" />
-            <ScrollView style={styles.container} scrollEnabled>
+            <View style={styles.container}>
                 <TableView style={styles.tableView}>
-                    <Cell title="Classes" accessory={"DisclosureIndicator"} onPress={()=>navigation.navigate("AddClass",{})} />
-                    <Cell title="Assignment Type" accessory={"DisclosureIndicator"} onPress={()=>navigation.navigate("EditAssignmentTypes",{})}/>
-                    <Cell title="Delete Class Data" onPress={() => {dispatch(removeAllAssignments())}}/>
-                </TableView>   
-            </ScrollView>
+                    <FlatList 
+                        keyExtractor={(item) => item.title} 
+                        data={cellData} 
+                        renderItem={renderItem} 
+                        ItemSeparatorComponent={({ highlighted }) => (
+                            <Separator isHidden={highlighted} />
+                          )} 
+                    />
+                </TableView>
+            </View>
         </View>
     )
 }
+
+//Old cells
+
+/*
+<Cell title="Classes" accessory={"DisclosureIndicator"} onPress={()=>navigation.navigate("AddClass",{})} onHighlightRow={() => changeSeparatorHidden(true, 0)} onUnHighlightRow={() => changeSeparatorHidden(false, 0)} />
+                    <Separator isHidden={separatorHidden[0]} />
+                    <Cell title="Assignment Type" accessory={"DisclosureIndicator"} onPress={()=>navigation.navigate("EditAssignmentTypes",{})} onHighlightRow={() => (changeSeparatorHidden(true, 1), changeSeparatorHidden(true, 0))} onUnHighlightRow={() => (changeSeparatorHidden(false, 1), changeSeparatorHidden(false, 0))} />
+                    <Separator isHidden={separatorHidden[1]} />
+                    <Cell title="Delete Class Data" onPress={() => {dispatch(removeAllAssignments())}} onHighlightRow={() => changeSeparatorHidden(true, 1)} onUnHighlightRow={() => changeSeparatorHidden(false, 1)}/>
+*/
 
 const styles = StyleSheet.create({
     container: {

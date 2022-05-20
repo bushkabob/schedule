@@ -1,13 +1,14 @@
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Appearance } from 'react-native'
 import { Cell, TableView, Separator } from 'react-native-tableview-simple';
-import { FlatList, Swipeable } from 'react-native-gesture-handler';
+import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useLayoutEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native'
 import Dialog from 'react-native-dialog'
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './redux';
-import { addClass, removeClass } from './redux/classSlice';
+import { addClass, removeClass, reorderClasses } from './redux/classSlice';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 const RightAction = () => (
     <View style={{backgroundColor: "red", width: "100%", alignItems: "flex-end", justifyContent: "center", padding: 10}}>
@@ -43,11 +44,14 @@ const ClassSettings = () => {
         dispatch(removeClass({ name: item }));
     }
 
-    const renderRow = (item: string, _: number): JSX.Element => {
+    const renderRow = (item: string, index: number | undefined, drag: ()=>void, isActive: boolean): JSX.Element => {
         return (
-            <Swipeable key={item} renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
-                <Cell title={item} />
-            </Swipeable>
+            <ScaleDecorator>
+                <Swipeable enabled={!isActive} key={item} renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
+                    <Cell title={item} cellAccessoryView={<Ionicons onLongPress={drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"}/>} />
+                </Swipeable>
+                {typeof index !== "undefined" && index < classes.length-1 && <Separator isHidden={isActive} />}
+            </ScaleDecorator>
         )
     }
 
@@ -72,14 +76,14 @@ const ClassSettings = () => {
     return(
         <View style={styles.container}>
             <TableView style={styles.tableView}>
-                <FlatList
+                <DraggableFlatList
                     data={classes}
                     keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item, index }) => renderRow(item, index)}
-                    ItemSeparatorComponent={({ highlighted }) => (
-                        <Separator isHidden={highlighted} />
-                    )}
-                    showsVerticalScrollIndicator
+                    renderItem={({ item, drag, isActive, index }) => (renderRow(item, index, drag, isActive))}
+                    style={{ height: "100%" }}
+                    onDragEnd={({ data }) => dispatch(reorderClasses(data))}
+                    dragHitSlop={{left: -50}}
+                    ListFooterComponent={<View></View>}
                 />
             </TableView>
             <Dialog.Container visible={isEnteringClass}>

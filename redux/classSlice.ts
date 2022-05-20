@@ -16,9 +16,13 @@ const classSlice = createSlice({
             const index = state.indexOf(action.payload.name)
             state = [...state.slice(0, index), ...state.slice(index + 1)]
             return state
-        }
+        },
+        reorderClasses(state, action: PayloadAction<string[]>) {
+            state = action.payload
+            return state
+        },
     }
 })
 
-export const { addClass, removeClass } = classSlice.actions;
+export const { addClass, removeClass, reorderClasses } = classSlice.actions;
 export default classSlice.reducer;

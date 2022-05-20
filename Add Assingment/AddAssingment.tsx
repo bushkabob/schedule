@@ -27,7 +27,7 @@ const AddAssingment = () => {
     //Extract the assignment from the route
     const route = useRoute<AddAssignmentRouteProps | AddAssignmentRouteProps2>();
     const assignment = "assignment" in route.params ? route.params.assignment : undefined;
-    
+
     const dispatch = useDispatch()
     const initialDate = new Date(Date.now())
     initialDate.setHours(23, 59, 59)
@@ -49,16 +49,16 @@ const AddAssingment = () => {
     }, [selectedClass, assignmentName, selectedType, selectedClass, selectedDay])
 
     const onPress = () => {
-        typeof assignment !== "undefined" ? updateAssignmentData(assignment.id) : saveAssignmentData()
+        typeof assignment !== "undefined" ? updateAssignmentData(assignment.id, assignment.completed) : saveAssignmentData()
+        navigation.goBack()
     }
 
     const saveAssignmentData = () => {
         dispatch(addAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed: false } }))
-        navigation.goBack()
     }
 
-    const updateAssignmentData = (assignmentId: string) => {
-        dispatch(updateAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed: false }, id: assignmentId }))
+    const updateAssignmentData = (assignmentId: string, completed: boolean) => {
+        dispatch(updateAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed:  completed}, id: assignmentId }))
     }
 
     const onDateChange = (_: SyntheticEvent<Readonly<{ timestamp: number; }>, Event>, date: Date | undefined) => {

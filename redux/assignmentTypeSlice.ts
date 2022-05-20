@@ -16,9 +16,13 @@ const assignmentTypeSlice = createSlice({
             const index = state.indexOf(action.payload.name)
             state = [...state.slice(0, index), ...state.slice(index + 1)]
             return state
-        }
+        },
+        reorderAssignmentTypes(state, action: PayloadAction<string[]>) {
+            state = action.payload
+            return state
+        },
     }
 })
 
-export const { addAssignmentType, removeAssignmentType } = assignmentTypeSlice.actions;
+export const { addAssignmentType, removeAssignmentType, reorderAssignmentTypes } = assignmentTypeSlice.actions;
 export default assignmentTypeSlice.reducer;
