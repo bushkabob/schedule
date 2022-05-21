@@ -1,9 +1,8 @@
 import { View, StyleSheet, FlatList, ListRenderItemInfo } from "react-native"
 import { StatusBar } from 'expo-status-bar';
 import { Cell, Separator, TableView } from "react-native-tableview-simple";
-import { ScrollView } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
-import { AddClassProps } from "./types";
+import { AddClassProps, EditAssignmentTypesProps } from "./types";
 import { useDispatch } from "react-redux";
 import { removeAllAssignments } from "./redux/assingmentsSlice";
 import { useState } from "react";
@@ -16,10 +15,15 @@ interface CellData {
 }
 
 const Settings = () => {
-    const navigation = useNavigation<AddClassProps>()
+    const navigation = useNavigation<AddClassProps | EditAssignmentTypesProps>()
     const dispatch = useDispatch()
     const [separatorHidden, setSeparatorHidden] = useState([false, false])
-    const cellData: CellData[] = [{title: "Classes", func: ()=>navigation.navigate("AddClass",{}), accessory: "DisclosureIndicator"}, {title: "Assignment Type", func: ()=>navigation.navigate("EditAssignmentTypes",{}), accessory: "DisclosureIndicator"}, {title: "Clear Assignments", func: ()=>{dispatch(removeAllAssignments())}, accessory: undefined}]
+    const cellData: CellData[] = [
+        {title: "Classes", func: ()=>navigation.navigate("AddClass",{}), accessory: "DisclosureIndicator"}, 
+        {title: "Assignment Type", func: ()=>navigation.navigate("EditAssignmentTypes",{}), accessory: "DisclosureIndicator"}, 
+        {title: "Select Color Theme", func: ()=>navigation.navigate("ColorTheme",{}), accessory: "DisclosureIndicator"},
+        {title: "Clear Assignments", func: ()=>{dispatch(removeAllAssignments())}, accessory: undefined}
+    ]
 
 
     const changeSeparatorHidden = (setHidden: boolean, index: number) => {
@@ -52,7 +56,7 @@ const Settings = () => {
                         renderItem={renderItem} 
                         ItemSeparatorComponent={({ highlighted }) => (
                             <Separator isHidden={highlighted} />
-                          )} 
+                        )} 
                     />
                 </TableView>
             </View>

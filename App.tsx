@@ -12,6 +12,8 @@ import AddAssignmentNavigator from './Add Assingment/AddAssingmentNavigator';
 import AddAssignmentType from "./AssignmentTypeSettings"
 import AddAssignment from './Add Assingment/AddAssingment';
 import SelectOptionScreen from './Add Assingment/SelectOptionScreen';
+import ColorTheme from './ColorTheme';
+import AddColorTheme from './AddColorTheme';
 
 const Stack = createNativeStackNavigator()
 
@@ -29,7 +31,9 @@ export default function App() {
               }} />
               <Stack.Screen name='AddAssignment' component={AddAssignment} options={{title: "Edit Assignment"}} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen name="AddClass" component={AddClass} options={{title: "Edit Classes"}}/>
+              <Stack.Screen name="ColorTheme" component={ColorTheme} options={{title: "Color Theme"}} />
+              <Stack.Screen name="AddColorTheme" component={AddColorTheme} options={{title: "Add Color Theme",}} />
+              <Stack.Screen name="AddClass" component={AddClass} options={{title: "Edit Classes"}} />
               <Stack.Screen name="EditAssignmentTypes" component={AddAssignmentType} options={{ title: "Edit Assignment Types" }} />
               <Stack.Screen name="SelectListOption" component={SelectOptionScreen} />
             </Stack.Group>

@@ -172,7 +172,7 @@ interface AssignmentCellProps {
 //Assingment cell that renders a list of assignments for a day
 const AssignmentCell = (props: AssignmentCellProps) => {
     return (
-        <View style={{flexDirection: "column", flexWrap: "wrap", flex:3.5, marginRight: 10}}>
+        <View style={{flexDirection: "column", flexWrap: "wrap", flex:3.5}}>
             {props.data.map((assignment) => {
                 return(
                     <SwipeableAssignmentCell 
@@ -215,11 +215,11 @@ const SwipeableAssignmentCell = (props: SwipeableAssignmentCellProps) => {
         });
 
         return (
-            <View style={{flexDirection: "row"}}>
-                <Animated.View style={[{borderRadius: 30, backgroundColor: "gray", alignItems: "flex-end", justifyContent: "center", padding: 10, marginHorizontal: 5}, {transform: [{scale: scaleEdit}]}]}>
+            <View style={{flexDirection: "row", marginLeft: 3}}>
+                <Animated.View style={[{borderRadius: 30, backgroundColor: "gray", height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center", marginRight: 3}, {transform: [{scale: scaleEdit}]}]}>
                     <Ionicons name='ellipsis-horizontal-circle-outline' color={"white"} size={24} onPress={()=>navigation.navigate("AddAssignment",{ assignment: assignment })} />
                 </Animated.View>
-                <Animated.View style={[{borderRadius: 30, backgroundColor: "red", alignItems: "flex-end", justifyContent: "center", padding: 10}, {transform: [{scale: scaleDelete}]}]}>
+                <Animated.View style={[{borderRadius: 30, backgroundColor: "red", height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center"}, {transform: [{scale: scaleDelete}]}]}>
                     <Ionicons 
                         name='trash-outline' 
                         color={"white"} 
