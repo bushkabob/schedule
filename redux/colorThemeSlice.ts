@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
-interface ColorThemeData {
+export interface ColorThemeData {
     name: string,
     isEditable: boolean,
     colors: string[]
@@ -13,7 +13,11 @@ interface ColorThemeState {
 
 const initialState: ColorThemeState = {
     selected: "Default",
-    colorThemes: [{name: "Default", isEditable: false, colors: ["#ff210c", "#FFA500", "#FFFD54", "#00FF00", "#ADD8E6", "#0000FF", "#A020F0", "#FFC0CB"]}]
+    colorThemes: [
+        {name: "Default", isEditable: false, colors: ["hsl(0, 100%, 50%)", "hsl(29, 100%, 50%)", "hsl(58, 100%, 50%)", "hsl(91, 100%, 50%)", "hsl(185, 100%, 50%)", "hsl(245, 100%, 50%)", "hsl(280, 100%, 50%)", "hsl(308, 100%, 50%)"]},
+        {name: "Light", isEditable: false, colors: ["hsl(0, 100%, 75%)", "hsl(29, 100%, 75%)", "hsl(58, 100%, 75%)", "hsl(91, 100%, 75%)", "hsl(185, 100%, 75%)", "hsl(245, 100%, 75%)", "hsl(280, 100%, 75%)", "hsl(308, 100%, 75%)"]},
+        {name: "Dark", isEditable: false, colors: ["hsl(0, 100%, 35%)", "hsl(29, 100%, 35%)", "hsl(58, 100%, 35%)", "hsl(91, 100%, 35%)", "hsl(185, 100%, 35%)", "hsl(245, 100%, 35%)", "hsl(280, 100%, 35%)", "hsl(308, 100%, 35%)"]},
+    ]
 }
 
 const colorThemeSlice = createSlice({
@@ -21,6 +25,7 @@ const colorThemeSlice = createSlice({
     initialState,
     reducers: {
         selectColorTheme(state, action: PayloadAction<string>) {
+            state.colorThemes = initialState.colorThemes
             state.selected = action.payload
             return state
         },
@@ -31,9 +36,9 @@ const colorThemeSlice = createSlice({
         removeColorTheme(state, action: PayloadAction<string>) {
             state.colorThemes = state.colorThemes.filter(theme => theme.name !== action.payload)
             return state
-        }
+        },
     }
 })
 
-export const { selectColorTheme } = colorThemeSlice.actions;
+export const { selectColorTheme, addColorTheme, removeColorTheme } = colorThemeSlice.actions;
 export default colorThemeSlice.reducer;

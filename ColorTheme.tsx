@@ -8,7 +8,7 @@ import { RootState } from './redux';
 import { selectColorTheme } from './redux/colorThemeSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { ColorTheme } from './types';
-
+import { ColorThemeData } from './redux/colorThemeSlice';
 interface ThemeData {
     name: string,
     colors: string[],
@@ -16,16 +16,11 @@ interface ThemeData {
 }
 
 const ColorThemeScreen = () => {
-    const selector = useSelector((state: RootState) => state.colorTheme)
+    const colorThemes = useSelector((state: RootState) => state.colorTheme)
     const [isEditing, setIsEditing] = useState(false)
     const dispatch = useDispatch()
     const navigation = useNavigation<ColorTheme>()
 
-    const themes: ThemeData[] = [
-        {name: "Default", colors: ["#ff210c", "#FFA500", "#FFFD54", "#00FF00", "#ADD8E6", "#0000FF", "#A020F0", "#FFC0CB"], canEdit: false},
-        {name: "Light", colors: [], canEdit: false},
-        {name: "Dark", colors: [], canEdit: false},
-    ]
 
     //Add buttons to the header
     useLayoutEffect(() => {
@@ -48,8 +43,8 @@ const ColorThemeScreen = () => {
         })
     })
 
-    const renderItem = ({item, separators}: {item: ThemeData, separators: ListRenderItemInfo<ThemeData>["separators"]}) => {
-        const selected = selector.selected === item.name
+    const renderItem = ({item, separators}: {item: ColorThemeData, separators: ListRenderItemInfo<ColorThemeData>["separators"]}) => {
+        const selected = colorThemes.selected === item.name
         return (
             <Cell 
                 cellContentView={
@@ -72,7 +67,7 @@ const ColorThemeScreen = () => {
                         </View>
                     </View>
                 }
-                onPress={()=>{isEditing ? console.log("Load") : dispatch(selectColorTheme(item.name))}}
+                onPress={()=>{isEditing ? navigation.navigate("AddColorTheme",{ name: item.name, isEditable: item.isEditable, colors: item.colors}) : dispatch(selectColorTheme(item.name))}}
                 onHighlightRow={separators.highlight}
                 onUnHighlightRow={separators.unhighlight}
                 accessory={isEditing ? "DisclosureIndicator" : (selected ? "Checkmark" : undefined)}
@@ -85,7 +80,7 @@ const ColorThemeScreen = () => {
             <TableView style={styles.tableView}>
                 <FlatList 
                     keyExtractor={(item)=>item.name} 
-                    data={themes} 
+                    data={colorThemes.colorThemes} 
                     renderItem={renderItem} 
                     ItemSeparatorComponent={({ highlighted }) => (
                         <Separator isHidden={highlighted} />
