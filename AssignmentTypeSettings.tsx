@@ -1,6 +1,6 @@
 import { View, StyleSheet, TouchableOpacity, Appearance } from 'react-native'
 import { Cell, TableView, Separator } from 'react-native-tableview-simple';
-import { FlatList, Swipeable } from 'react-native-gesture-handler';
+import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useLayoutEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native'
@@ -39,7 +39,7 @@ const UserDefinedSettings = () => {
     const renderRow = (item: string, index: number | undefined, drag: ()=>void, isActive: boolean): JSX.Element => {
         return (
             <ScaleDecorator>
-                <Swipeable key={item} renderRightActions={RightAction} onSwipeableOpen={()=>dispatch(removeAssignmentType({ name: item }))}>
+                <Swipeable hitSlop={{"left":-50}} key={item} renderRightActions={RightAction} onSwipeableOpen={()=>dispatch(removeAssignmentType({ name: item }))}>
                     <Cell title={item} cellAccessoryView={<Ionicons onLongPress={drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"}/>} />
                 </Swipeable>
                 {typeof index !== "undefined" && index < availableOptions.length-1 && <Separator isHidden={isActive} />}

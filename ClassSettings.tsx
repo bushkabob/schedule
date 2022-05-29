@@ -47,7 +47,7 @@ const ClassSettings = () => {
     const renderRow = (item: string, index: number | undefined, drag: ()=>void, isActive: boolean): JSX.Element => {
         return (
             <ScaleDecorator>
-                <Swipeable enabled={!isActive} key={item} renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
+                <Swipeable hitSlop={{left: -50}} enabled={!isActive} key={item} renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
                     <Cell title={item} cellAccessoryView={<Ionicons onLongPress={drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"}/>} />
                 </Swipeable>
                 {typeof index !== "undefined" && index < classes.length-1 && <Separator isHidden={isActive} />}

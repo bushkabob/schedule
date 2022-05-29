@@ -21,6 +21,7 @@ interface AssignmentViewProps {
     selectedDate: string
 }
 
+//Main Screen
 const AssignmentsView = (props: AssignmentViewProps) => {
     const dispatch = useDispatch();
     const [oldAssignment, setOldAssignment] = useState<StoredAssignmentInfo>()
@@ -119,8 +120,6 @@ const AssignmentsView = (props: AssignmentViewProps) => {
     }
 
     const closeRow = (id: string) => {
-        console.log(swipeableRefs)
-        console.log(prevOpenedRow)
         if (prevOpenedRow && prevOpenedRow !== swipeableRefs.current[id]) {
             console.log("close")
             prevOpenedRow.close();
@@ -141,7 +140,13 @@ const AssignmentsView = (props: AssignmentViewProps) => {
                             <Text style={{fontSize:20}} >{item.date.split(" ")[2]}</Text>
                         </View>
                     </View>
-                    <AssignmentCell data={item.assignments} setOldAssignment={setOldAssignment} updateSwipeableRef={updateSwipeableRef} closeRow={closeRow} />
+                    <AssignmentCell 
+                        data={item.assignments} 
+                        setOldAssignment={setOldAssignment} 
+                        updateSwipeableRef={updateSwipeableRef} 
+                        closeRow={closeRow} 
+                        setPrevOpenRow={setPrevOpenedRow}
+                    />
                 </View> 
             </View>
         )
@@ -162,11 +167,13 @@ const AssignmentsView = (props: AssignmentViewProps) => {
     )
 }
 
+//Assignment Cell
 interface AssignmentCellProps {
     data: StoredAssignmentInfo[]
     setOldAssignment: (assignment: StoredAssignmentInfo) => void
     updateSwipeableRef: (id: string, ref: Swipeable|null) => void
     closeRow: (id: string) => void
+    setPrevOpenRow: (ref: Swipeable|null) => void
 }
 
 //Assingment cell that renders a list of assignments for a day
@@ -176,6 +183,7 @@ const AssignmentCell = (props: AssignmentCellProps) => {
             {props.data.map((assignment) => {
                 return(
                     <SwipeableAssignmentCell 
+                        setPrevOpenRow={props.setPrevOpenRow}
                         key={assignment.id}
                         assignment={assignment} 
                         setOldAssignment={props.setOldAssignment} 
@@ -188,11 +196,13 @@ const AssignmentCell = (props: AssignmentCellProps) => {
     )
 }
 
+//Assignment Cell Content w/ swipeable functionality
 interface SwipeableAssignmentCellProps {
     assignment: StoredAssignmentInfo
     setOldAssignment: (assignment: StoredAssignmentInfo) => void
     updateSwipeableRef: (id: string, ref: Swipeable|null) => void
     closeRow: (id: string) => void
+    setPrevOpenRow: (ref: Swipeable|null) => void
 }
 
 //Swipeable assignment cell that renders a single assignment
@@ -224,7 +234,7 @@ const SwipeableAssignmentCell = (props: SwipeableAssignmentCellProps) => {
                         name='trash-outline' 
                         color={"white"} 
                         size={24} 
-                        onPress={()=>dispatch(removeAssignment({ id: assignment.id }))} 
+                        onPress={()=>{dispatch(removeAssignment({ id: assignment.id })); props.setPrevOpenRow(null)}} 
                     />
                 </Animated.View>
             </View>

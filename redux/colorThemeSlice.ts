@@ -25,7 +25,6 @@ const colorThemeSlice = createSlice({
     initialState,
     reducers: {
         selectColorTheme(state, action: PayloadAction<string>) {
-            state.colorThemes = initialState.colorThemes
             state.selected = action.payload
             return state
         },

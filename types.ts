@@ -13,6 +13,7 @@ export type RootStackParamList = {
   ColorTheme: {};
   AddColorTheme: { };
   EditColorTheme: { name: string, isEditable: boolean, colors: string[] };
+  SelectColor: { selectedColor: string, index: number, name: string};
 };
 
 export type HomeProps = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -23,8 +24,10 @@ export type AddClassProps = NativeStackNavigationProp<RootStackParamList, 'AddCl
 export type EditAssignmentTypesProps = NativeStackNavigationProp<RootStackParamList, 'EditAssignmentTypes'>;
 export type ColorTheme = NativeStackNavigationProp<RootStackParamList, 'ColorTheme'>;
 export type AddColorThemeProps = NativeStackNavigationProp<RootStackParamList, 'AddColorTheme'>;
+export type SelectColorProps = NativeStackNavigationProp<RootStackParamList, 'SelectColor'>;
 
 export type AddColorThemeRouteProps = RouteProp<RootStackParamList, 'AddColorTheme'>;
 export type EditColorThemeRouteProps = RouteProp<RootStackParamList, 'EditColorTheme'>;
+export type SelectedColorReturnRouteProps = RouteProp<RootStackParamList, 'SelectColor'>;
 export type SelectScreenRouteProps = RouteProp<RootStackParamList, 'SelectListOption'>;
 export type AddAssignmentRouteProps = RouteProp<RootStackParamList, 'AddAssignment'>;
