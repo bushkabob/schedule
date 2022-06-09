@@ -1,16 +1,15 @@
-import { View, Text, FlatList, StyleSheet, Animated } from "react-native";
+import { View, Text, FlatList, StyleSheet } from "react-native";
 import { useState, useEffect, useRef } from "react";
-import { updateAssignmentCompleted, StoredAssignmentInfo, removeAssignment } from "./redux/assingmentsSlice"
-import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { updateAssignmentCompleted, StoredAssignmentInfo } from "./redux/assingmentsSlice"
 import { useDispatch, useSelector } from "react-redux";
 import { Accelerometer } from 'expo-sensors';
 import { Subscription } from "expo-sensors/build/Pedometer";
 import { Swipeable } from "react-native-gesture-handler";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { AddAssigmentProps } from "./types";
-import { RootState } from "./redux";
 import Dialog from "react-native-dialog";
+import SwipeableAssignmentCell from "./AssignmentViewCell";
+import ColorIndicator from "./ColorIndicator";
+import { RootState } from "./redux";
+
 interface DateAssignments {
     date: string,
     isFirstofMonth: boolean,
@@ -19,6 +18,7 @@ interface DateAssignments {
 
 interface AssignmentViewProps {
     selectedDate: string
+    assignments: StoredAssignmentInfo[]
 }
 
 //Main Screen
@@ -30,15 +30,9 @@ const AssignmentsView = (props: AssignmentViewProps) => {
     const [prevOpenedRow, setPrevOpenedRow] = useState<Swipeable | null>(null)
     const [dialogVisible, setDialogVisible] = useState(false)
 
-    //Determining the week start for the selected date
-    const date = new Date(props.selectedDate)
-    const day = date.getDay()
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1)
-    const weekStartString = new Date(date.setDate(diff)).toISOString()
-
-    const assignments = useSelector((state: RootState) => state.assignments.filter(assignment => !assignment.completed || assignment.date > weekStartString));
-
-    
+    //Class colors
+    const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
+    const classes = useSelector((state: RootState) => state.classes)
 
     //organize the asssignments into an array that contains objects with the date and the assignments for that date
     const organizeAssignments = (assignments: StoredAssignmentInfo[]) => {
@@ -131,23 +125,41 @@ const AssignmentsView = (props: AssignmentViewProps) => {
 
     //Renders a cell for each day, if the day is the first of the month, it will render a header for the month
     const renderItem = (item: DateAssignments) => {
+        //Getting a single list of clases for the day
+        const usedClasses = item.assignments.reduce((prev, assignment) => {!prev.includes(assignment.class) && prev.push(assignment.class); return prev}, [] as string[])
+        const colors = usedClasses.map((className) => classes.findIndex((classInfo) => classInfo === className))
         return (
-            <View>
-                {item.isFirstofMonth && <Text style={{paddingBottom: 5, fontSize: 30, fontWeight: "bold"}}>{item.date.split(" ")[1]}</Text>}
-                <View style={{"paddingVertical": 10, flexDirection: "row"}} >
-                    <View style={{flex:1, alignItems: "center"}} >
-                        <View style={{backgroundColor: "white", borderColor: "black", borderWidth: 1, borderRadius: 16, alignItems: "center", flexDirection: "row", justifyContent: "center", aspectRatio: 1, width: "50%"}}>
-                            <Text style={{fontSize:20}} >{item.date.split(" ")[2]}</Text>
+            <View style={{marginTop: 10}} >
+                <View>
+                    {item.isFirstofMonth && 
+                        <View style={[{backgroundColor: "white", marginBottom: 10}, styles.shadow]}> 
+                            <Text style={{marginHorizontal: 10, fontSize: 30, fontWeight: "bold", paddingVertical:5}}>{item.date.split(" ")[1]}</Text> 
+                        </View>
+                    }
+                    <View style={[{paddingVertical: 10, backgroundColor: "white"}, styles.shadow]} >
+                        <View style={{backgroundColor: "white", borderRadius: 30, alignItems: "center", flexDirection: "row", flexGrow: 1, height: 40}}>
+                            <Text style={{fontSize:20, marginHorizontal: 20}} >{item.date.split(" ")[2]}</Text>
+                            <View style={{flexDirection: "row", flexGrow: 1, justifyContent: "flex-end", marginHorizontal: 10}} >
+                                {colors.map((color) => <ColorIndicator key={color} style={{marginHorizontal: 2}} color={theme.colors[color - Math.floor(color/theme.colors.length)]} />)}
+                            </View>
+                        </View>
+                        <View style={{flexDirection: "column", flexWrap: "wrap", flex:1}}>
+                            {item.assignments.map((assignment) => {
+                                return(
+                                    <SwipeableAssignmentCell 
+                                        setPrevOpenRow={setPrevOpenedRow}
+                                        key={assignment.id}
+                                        assignment={assignment} 
+                                        setOldAssignment={setOldAssignment} 
+                                        updateSwipeableRef={updateSwipeableRef}
+                                        closeRow={closeRow}
+                                        color={theme.colors[classes.findIndex((classInfo) => classInfo === assignment.class)]}
+                                    />
+                                )
+                            })}
                         </View>
                     </View>
-                    <AssignmentCell 
-                        data={item.assignments} 
-                        setOldAssignment={setOldAssignment} 
-                        updateSwipeableRef={updateSwipeableRef} 
-                        closeRow={closeRow} 
-                        setPrevOpenRow={setPrevOpenedRow}
-                    />
-                </View> 
+                </View>
             </View>
         )
     }
@@ -162,110 +174,19 @@ const AssignmentsView = (props: AssignmentViewProps) => {
                 <Dialog.Button bold label="Cancel" onPress={()=>handlePress(false)} />
                 <Dialog.Button label="Undo" onPress={()=>handlePress(true)} />
             </Dialog.Container>
-            <FlatList ItemSeparatorComponent={()=><View style={styles.line}/>} keyExtractor={(item: DateAssignments) => {return item.date}} style={{height: "100%", width: "100%", paddingLeft: 10}} scrollEnabled data={organizeAssignments(assignments)}  renderItem={({ item }) => renderItem(item)} />
-        </View>
-    )
-}
-
-//Assignment Cell
-interface AssignmentCellProps {
-    data: StoredAssignmentInfo[]
-    setOldAssignment: (assignment: StoredAssignmentInfo) => void
-    updateSwipeableRef: (id: string, ref: Swipeable|null) => void
-    closeRow: (id: string) => void
-    setPrevOpenRow: (ref: Swipeable|null) => void
-}
-
-//Assingment cell that renders a list of assignments for a day
-const AssignmentCell = (props: AssignmentCellProps) => {
-    return (
-        <View style={{flexDirection: "column", flexWrap: "wrap", flex:3.5}}>
-            {props.data.map((assignment) => {
-                return(
-                    <SwipeableAssignmentCell 
-                        setPrevOpenRow={props.setPrevOpenRow}
-                        key={assignment.id}
-                        assignment={assignment} 
-                        setOldAssignment={props.setOldAssignment} 
-                        updateSwipeableRef={props.updateSwipeableRef}
-                        closeRow={props.closeRow}
-                    />
-                )
-            })}
+            <FlatList 
+                keyExtractor={(item: DateAssignments) => {return item.date}} 
+                style={{height: "100%", width: "100%"}}
+                scrollEnabled 
+                data={organizeAssignments(props.assignments)}  
+                renderItem={({ item }) => renderItem(item)}
+                ListFooterComponent={() => <View style={{height: 50}} />}
+            />
         </View>
     )
 }
 
 //Assignment Cell Content w/ swipeable functionality
-interface SwipeableAssignmentCellProps {
-    assignment: StoredAssignmentInfo
-    setOldAssignment: (assignment: StoredAssignmentInfo) => void
-    updateSwipeableRef: (id: string, ref: Swipeable|null) => void
-    closeRow: (id: string) => void
-    setPrevOpenRow: (ref: Swipeable|null) => void
-}
-
-//Swipeable assignment cell that renders a single assignment
-const SwipeableAssignmentCell = (props: SwipeableAssignmentCellProps) => {
-    const isOverdue = new Date(props.assignment.date) < new Date() && !props.assignment.completed;
-    const dispatch = useDispatch()
-    const navigation = useNavigation<AddAssigmentProps>()
-
-    const RightAction = (_: Animated.AnimatedInterpolation, dragX: Animated.AnimatedInterpolation, assignment: StoredAssignmentInfo) => {
-        //Animations for slide buttons
-        const scaleDelete = dragX.interpolate({
-            inputRange: [-40,0], 
-            outputRange: [1,0],
-            extrapolate: "clamp",
-        });
-        const scaleEdit = dragX.interpolate({
-            inputRange: [-90,0], 
-            outputRange: [1,0],
-            extrapolate: "clamp",
-        });
-
-        return (
-            <View style={{flexDirection: "row", marginLeft: 3}}>
-                <Animated.View style={[{borderRadius: 30, backgroundColor: "gray", height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center", marginRight: 3}, {transform: [{scale: scaleEdit}]}]}>
-                    <Ionicons name='ellipsis-horizontal-circle-outline' color={"white"} size={24} onPress={()=>navigation.navigate("AddAssignment",{ assignment: assignment })} />
-                </Animated.View>
-                <Animated.View style={[{borderRadius: 30, backgroundColor: "red", height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center"}, {transform: [{scale: scaleDelete}]}]}>
-                    <Ionicons 
-                        name='trash-outline' 
-                        color={"white"} 
-                        size={24} 
-                        onPress={()=>{dispatch(removeAssignment({ id: assignment.id })); props.setPrevOpenRow(null)}} 
-                    />
-                </Animated.View>
-            </View>
-        );
-    }
-
-    return (
-        <View style={{width:"100%", paddingRight: 10, paddingBottom: 5}} key={props.assignment.id} >
-            <Swipeable 
-                key={props.assignment.id} 
-                ref={ref => props.updateSwipeableRef(props.assignment.id,ref)} 
-                onSwipeableOpen={()=>props.closeRow(props.assignment.id)} 
-                containerStyle={{}} 
-                renderRightActions={(progress, dragX) => RightAction(progress, dragX, props.assignment)}
-            >
-                <View style={{padding: 10, flexDirection:"row", justifyContent:"space-between", backgroundColor: "white", borderRadius: 10, shadowColor: '#000', margin: 3, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.8, shadowRadius: 2, elevation: 5}} >
-                    <View style={{justifyContent: "center"}}>
-                        <Text style={isOverdue?{color:"red"}:{}}>
-                            {props.assignment.name + " - " + props.assignment.class}
-                        </Text>
-                    </View>
-                    <BouncyCheckbox 
-                        isChecked={props.assignment.completed} 
-                        disableBuiltInState  style={{flexDirection: "row-reverse"}} 
-                        onPress={() => (props.setOldAssignment({...props.assignment, completed: !props.assignment.completed}), dispatch(updateAssignmentCompleted({id: props.assignment.id, completed: !props.assignment.completed})))} 
-                    />
-                </View>
-            </Swipeable>
-        </View>
-    )
-}
 
 export default AssignmentsView;
 
@@ -274,11 +195,19 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
         alignItems: "center",
-        marginTop: 5,
+        backgroundColor: "white",
     },
     line: {
         borderBottomColor: 'black',
         borderBottomWidth: 1,
         width: "100%",
+    },
+    shadow: {
+        // shadowColor: '#000', 
+        // margin: 3, 
+        // shadowOffset: { width: 0, height: 1 }, 
+        // shadowOpacity: 0.8, 
+        // shadowRadius: 2,
+        // borderRadius: 30
     }
 });

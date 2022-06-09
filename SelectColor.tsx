@@ -79,7 +79,7 @@ import {
 } from 'react-native-color';
 import { TextInput } from 'react-native-gesture-handler';
 import tinycolor from 'tinycolor2';
-import { AddColorThemeProps, SelectColorProps, SelectedColorReturnRouteProps } from './types';
+import { AddColorThemeProps, SelectedColorReturnRouteProps } from './types';
 
 const SelectColor = () => {
     const route = useRoute<SelectedColorReturnRouteProps>()

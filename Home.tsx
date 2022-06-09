@@ -1,19 +1,51 @@
-import { View, SafeAreaView, StyleSheet, Text, FlatList } from "react-native";
+import { View, SafeAreaView, StyleSheet, Text } from "react-native";
 import { StatusBar } from 'expo-status-bar';
-import { useSelector } from "react-redux";
-import { RootState } from "./redux";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { useState } from "react";
+import {  useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import GestureRecognizer from "react-native-swipe-gestures";
-import { StoredAssignmentInfo } from "./redux/assingmentsSlice";
 import AssignmentsView from "./AssignmentsView";
+import { useSelector } from "react-redux";
+import { RootState } from "./redux";
 
 const HomeScreen = () => {
-    const date = new Date().toDateString();
-    const [currentDate, setCurrentDate] = useState(date)
-    const [selectedDate, setSelectDate] = useState(date)
+    const initialDate = new Date().toDateString();
+    const [currentDate, setCurrentDate] = useState(initialDate)
+    const [selectedDate, setSelectDate] = useState(initialDate)
 
+    const date = new Date(currentDate)
+    const day = date.getDay()
+    const diff = date.getDate() - day
+    const offset = date.getTimezoneOffset()
+    const weekStart = new Date(date.setDate(diff))
+    const weekStartString = weekStart.toISOString()
+    const weekEndString = new Date(date.setDate(weekStart.getDate() + 6)).toISOString()
+    const assignments = useSelector((state: RootState) => state.assignments.filter(assignment => !assignment.completed || assignment.date > weekStartString));
+    //create an object that contains that has the dates for the week in the format of "yyyy-mm-dd" as the keys and empty arrays as the values
+    const weekDates = Array.from(Array(7).keys()).reduce((acc, _, i) => {
+        const date = new Date(weekStartString)
+        date.setDate(date.getDate() + i)
+        const dateString = date.toISOString().slice(0, 10)
+        return { ...acc, [dateString]: [] }
+    }, {} as { [key: string]: string[] })
+
+    //For color indictors
+    //check if  assignments[0] has a date within the week of the selected date
+    const visibleAssigmentClasses = assignments.reduce((prev, assignment) => {
+        const time = new Date(assignment.date).getTime()
+        const assignmentDate = new Date(time - offset*60*1000).toISOString().substring(0, 10)
+        const weekStart = weekStartString.substring(0, 10)
+        const weekEnd = weekEndString.substring(0, 10)
+        if (assignmentDate >= weekStart && assignmentDate <= weekEnd) {
+            prev[assignmentDate].push(assignment.class)
+        }
+        return prev
+    }, weekDates)
+    const visibleAssignmentArray: string[][] = Object.keys(visibleAssigmentClasses).map(key => visibleAssigmentClasses[key])
+    const classes = useSelector((state: RootState) => state.classes)
+    const activeIndicies = visibleAssignmentArray.map((dayClasses) => dayClasses.reduce((prev, className) => {!prev.includes(classes.indexOf(className)) && prev.push(classes.indexOf(className)); return prev}, [] as number[]))
+    //end color indictors
+    console.log(visibleAssigmentClasses)
     const incrementDate = () => {
         setCurrentDate((prevDate) => {
             const newDate = new Date(prevDate);
@@ -33,10 +65,10 @@ const HomeScreen = () => {
     return (
         <View style={styles.container}>
             <StatusBar style="auto" />
-            <SafeAreaView style={styles.calendarView}>
-               <SwipeableCalendar selectedDate={new Date(selectedDate)} setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  forDate={new Date(currentDate)} decrement={decrementDate} increment={incrementDate} />
-                <AssignmentsView selectedDate={currentDate} />
-            </SafeAreaView>
+            <View style={styles.calendarView}>
+               <SwipeableCalendar activeIndicies={activeIndicies} selectedDate={new Date(selectedDate)} setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  forDate={new Date(currentDate)} decrement={decrementDate} increment={incrementDate} />
+                <AssignmentsView assignments={assignments} selectedDate={currentDate} />
+            </View>
         </View>
     );
 }
@@ -47,9 +79,12 @@ interface swipeableCalendarProps {
     decrement: () => void,
     setSelecteDate: (date: Date) => void,
     selectedDate: Date,
+    activeIndicies: number[][]
 }
 
 const SwipeableCalendar = (props: swipeableCalendarProps) => {
+    //getting color theme
+    const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
     //create a function that returns an array of dates for the months that contain the forDate starting at Sunday and ending at Saturday
     const getDates = (forDate: Date) => {
         const month = forDate.getMonth()
@@ -67,6 +102,12 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
     const dates = getDates(props.forDate)
     const month = props.forDate.toLocaleString('default', { month: 'long' })
     const year = props.forDate.getFullYear()
+
+    const getColor = (colorIndex: number) => {
+        return theme.colors[colorIndex - Math.floor(colorIndex/theme.colors.length)]
+    }
+    
+    const circleHeight = 5;
     return (
         <View style={styles.container}>
             <View style={{width:"100%", backgroundColor: "white"}}>
@@ -76,10 +117,28 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                         <TouchableOpacity onPress={props.decrement}>
                             <Ionicons name="ios-arrow-back" size={16} />
                         </TouchableOpacity>
-                            {dates.map(([day, date, selected]) => (
+                            {dates.map(([day, date, selected], index) => (
                                 <View key={day}>
-                                    <Text key={day} style={styles.calendarTitle}>{day}</Text>
-                                    <Text style={[styles.calendarTitle, {color:selected?"blue":"black"}]} key={date.getDate()}>{date.getDate()}</Text>
+                                    <View style={{flexGrow: 1}}>
+                                        <Text key={day} style={[styles.calendarTitle]}>{day}</Text>
+                                        <Text style={[styles.calendarTitle, {color:selected?"blue":"black", marginTop:10, marginBottom: 5}]} key={date.getDate()}>{date.getDate()}</Text>
+                                    </View>
+                                    <View>
+                                        <View style={{justifyContent: "center", alignItems: "center"}}>
+                                                <View style={{flexDirection: "row", height: circleHeight, justifyContent: "center", margin: 1, width: circleHeight*6}}>
+                                                    {props.activeIndicies[index].slice(0,4).map((colorIndex) => {
+                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex)}} />
+                                                    })
+                                                    }
+                                                </View>
+                                                <View style={{flexDirection: "row", height: circleHeight, margin: 1, justifyContent: "center", width: circleHeight*6}}>
+                                                    {props.activeIndicies[index].slice(4,8).map((colorIndex) => {
+                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex)}} />
+                                                    })
+                                                    }
+                                                </View>
+                                        </View>
+                                    </View>
                                 </View>
                             ))}
                         <TouchableOpacity onPress={props.increment} >
@@ -90,7 +149,6 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
             </View>
         </View>
     );
-
 }
 
 /*const Calendar = () => {
@@ -184,7 +242,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 15,
-        paddingVertical: 10,
+        paddingTop: 10,
     },
     calendarTitle: {
         textAlign: 'center',
