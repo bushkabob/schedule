@@ -122,7 +122,9 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                                 <View key={day}>
                                     <View style={{flexGrow: 1}}>
                                         <Text key={day} style={[styles.calendarTitle]}>{day}</Text>
-                                        <Text style={[styles.calendarTitle, {color:selected?"blue":"black", marginTop:10, marginBottom: 5}]} key={date.getDate()}>{date.getDate()}</Text>
+                                        <View style={[{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', aspectRatio: 1, borderRadius: 60}, selected?{backgroundColor: "red"}:{}]}>
+                                            <Text style={[styles.calendarTitle, {color:selected?"white":"black"}]} key={date.getDate()}>{date.getDate()}</Text>
+                                        </View>
                                     </View>
                                     <View>
                                         <View style={{justifyContent: "center", alignItems: "center"}}>
