@@ -47,7 +47,11 @@ const assingmentSlice = createSlice({
         updateAssignment(state, action: PayloadAction<{ id: string, assignment: AssignmentInfo }>) {
             const index = state.findIndex(assignment => assignment.id === action.payload.id)
             if (index !== -1) {
-                state[index] = { ...state[index], ...action.payload.assignment }
+                const updateAssignment = { ...state[index], ...action.payload.assignment }
+                state = [...state.slice(0, index), ...state.slice(index + 1)]
+                const newIndex = state.findIndex(assignment => new Date(assignment.date) > new Date(updateAssignment.date))
+                state = newIndex === -1 ? [...state, updateAssignment] : [...state.slice(0, newIndex), updateAssignment, ...state.slice(newIndex)]
+                console.log(state)
             }
             return state
         },

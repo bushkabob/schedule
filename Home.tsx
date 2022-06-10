@@ -29,6 +29,8 @@ const HomeScreen = () => {
         return { ...acc, [dateString]: [] }
     }, {} as { [key: string]: string[] })
 
+    console.log(assignments)
+
     //For color indictors
     //check if  assignments[0] has a date within the week of the selected date
     const visibleAssigmentClasses = assignments.reduce((prev, assignment) => {
@@ -45,7 +47,6 @@ const HomeScreen = () => {
     const classes = useSelector((state: RootState) => state.classes)
     const activeIndicies = visibleAssignmentArray.map((dayClasses) => dayClasses.reduce((prev, className) => {!prev.includes(classes.indexOf(className)) && prev.push(classes.indexOf(className)); return prev}, [] as number[]))
     //end color indictors
-    console.log(visibleAssigmentClasses)
     const incrementDate = () => {
         setCurrentDate((prevDate) => {
             const newDate = new Date(prevDate);
