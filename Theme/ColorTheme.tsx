@@ -4,11 +4,11 @@ import { useNavigation } from '@react-navigation/native'
 import { FlatList } from 'react-native-gesture-handler';
 import { TableView, Cell, Separator } from 'react-native-tableview-simple';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from './redux';
-import { removeColorTheme, selectColorTheme } from './redux/colorThemeSlice';
+import { RootState } from '../redux';
+import { removeColorTheme, selectColorTheme } from '../redux/colorThemeSlice';
 import { Ionicons } from '@expo/vector-icons';
-import { ColorTheme } from './types';
-import { ColorThemeData } from './redux/colorThemeSlice';
+import { ColorTheme } from '../types';
+import { ColorThemeData } from '../redux/colorThemeSlice';
 import { Swipeable } from 'react-native-gesture-handler';
 interface ThemeData {
     name: string,

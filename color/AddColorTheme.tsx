@@ -69,7 +69,6 @@ const AddColorTheme = () => {
     const isEditable = initialData.isEditable
     const colorThemeNames = useSelector((state: RootState) => state.colorTheme.colorThemes.map(({name}) => name))
     const dispatch = useDispatch()
-    console.log("Reload!!!!!")
     //Start of code to update the color based on the selected color
     const updateSelectedColor = (index: number, color: string) => {
         typeof color !== "undefined" && setColors(colors.map((c, i) => i === index ? color : c))
@@ -79,8 +78,6 @@ const AddColorTheme = () => {
         const unsubscribe = navigation.addListener('focus', () => {
             route.params.selectedColorData && updateSelectedColor(route.params.selectedColorData.index, route.params.selectedColorData.color)
         });
-        console.log(route.params)
-        console.log(initialData.name)
         // Return the function to unsubscribe from the event so it gets removed on unmount
         return unsubscribe;
       });

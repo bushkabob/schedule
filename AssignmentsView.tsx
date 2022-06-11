@@ -129,8 +129,6 @@ const AssignmentsView = (props: AssignmentViewProps) => {
         //Getting a single list of clases for the day
         const usedClasses = item.assignments.reduce((prev, assignment) => {!prev.includes(assignment.class) && prev.push(assignment.class); return prev}, [] as string[])
         const colors = usedClasses.map((className) => classes.findIndex((classInfo) => classInfo === className))
-        console.log(colors)
-        console.log(colors.forEach((color) => console.log(Math.floor(color/(theme.colors.length)))))
         return (
             <View style={{marginTop: 10}} >
                 <View>

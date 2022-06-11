@@ -51,7 +51,6 @@ const assingmentSlice = createSlice({
                 state = [...state.slice(0, index), ...state.slice(index + 1)]
                 const newIndex = state.findIndex(assignment => new Date(assignment.date) > new Date(updateAssignment.date))
                 state = newIndex === -1 ? [...state, updateAssignment] : [...state.slice(0, newIndex), updateAssignment, ...state.slice(newIndex)]
-                console.log(state)
             }
             return state
         },
