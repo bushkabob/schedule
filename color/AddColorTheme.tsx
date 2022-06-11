@@ -1,11 +1,11 @@
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { Cell, Section, Separator, TableView } from 'react-native-tableview-simple';
 import { TextInput, View, StyleSheet, Text, Button, Appearance } from 'react-native';
-import { AddColorThemeRouteProps, EditColorThemeRouteProps, SelectColorProps, SelectedColorReturnRouteProps, AddColorThemeProps } from './types';
+import { ColorTheme, EditColorThemeRouteProps, SelectColorProps } from '../types';
 import { useDispatch, useSelector } from 'react-redux';
-import { addColorTheme, removeColorTheme } from './redux/colorThemeSlice';
-import { RootState } from './redux';
+import { addColorTheme, removeColorTheme } from '../redux/colorThemeSlice';
+import { RootState } from '../redux';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -48,7 +48,7 @@ const ColorCell = (props: ColorCellProps) => {
                         </View>
                     }
                     isDisabled={!props.isEditable||props.isEditing}
-                    onPress={()=>navigation.navigate("SelectColor", {selectedColor: props.color, index: props.index, name: props.ogName})}
+                    onPress={()=>navigation.navigate("SelectColor", {selectedColor: props.color, index: props.index, name: props.ogName })}
                     accessory={props.isEditable?"DisclosureIndicator":undefined}
                     cellAccessoryView={props.isEditing&&<Ionicons style={{paddingLeft: 20}} onLongPress={props.drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"} />}
                     contentContainerStyle={[topBorder, bottomBorder]}
@@ -59,18 +59,17 @@ const ColorCell = (props: ColorCellProps) => {
     )
 }
 
-
-
 const AddColorTheme = () => {
-    const navigation = useNavigation<AddColorThemeProps>()
-    const route = useRoute<AddColorThemeRouteProps | EditColorThemeRouteProps | SelectedColorReturnRouteProps>()
-    const initialData = "colors" in route.params ? route.params : {name: "", isEditable: true, colors: ["#FAF9F6"]};
-    const [name, setName] = useState(initialData.name)
+    const navigation = useNavigation<ColorTheme>()
+    const route = useRoute<EditColorThemeRouteProps>()
+    const initialData = route.params.initialData  ? route.params.initialData : {name: route.params.selectedColorData ? route.params.selectedColorData.name : "", isEditable: true, colors: ["#FAF9F6"]};
+    const [name, setName] = useState(initialData.name);
     const [colors, setColors] = useState(initialData.colors)
     const [isEditing, setIsEditing] = useState(false)
     const isEditable = initialData.isEditable
     const colorThemeNames = useSelector((state: RootState) => state.colorTheme.colorThemes.map(({name}) => name))
     const dispatch = useDispatch()
+    console.log("Reload!!!!!")
     //Start of code to update the color based on the selected color
     const updateSelectedColor = (index: number, color: string) => {
         typeof color !== "undefined" && setColors(colors.map((c, i) => i === index ? color : c))
@@ -78,9 +77,10 @@ const AddColorTheme = () => {
 
     useFocusEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
-            "selectedColor" in route.params && updateSelectedColor(route.params.index, route.params.selectedColor)
+            route.params.selectedColorData && updateSelectedColor(route.params.selectedColorData.index, route.params.selectedColorData.color)
         });
-    
+        console.log(route.params)
+        console.log(initialData.name)
         // Return the function to unsubscribe from the event so it gets removed on unmount
         return unsubscribe;
       });
@@ -170,11 +170,11 @@ const AddColorTheme = () => {
                                                 <Button 
                                                     title={"Save"} 
                                                     onPress={()=>{}}
-                                                    disabled={name === "" || (colorThemeNames.includes(name) && "name" in route.params ? route.params.name !== name : colorThemeNames.includes(name))}
+                                                    disabled={name === "" || (colorThemeNames.includes(name) && initialData.name ? initialData.name !== name : colorThemeNames.includes(name))}
                                                 />
                                             </View>
                                         } 
-                                        isDisabled={name === "" || (colorThemeNames.includes(name) && "name" in route.params ? route.params.name !== name : colorThemeNames.includes(name))}
+                                        isDisabled={name === "" || (colorThemeNames.includes(name) && initialData.name ? initialData.name !== name : colorThemeNames.includes(name))}
                                         onPress={()=>(
                                             dispatch(removeColorTheme(name)),
                                             dispatch(addColorTheme({ "name": name, "isEditable": isEditable, "colors": colors })), 

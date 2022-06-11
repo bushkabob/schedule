@@ -7,6 +7,7 @@ import GestureRecognizer from "react-native-swipe-gestures";
 import AssignmentsView from "./AssignmentsView";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
+import { getColor } from "./utils";
 
 const HomeScreen = () => {
     const initialDate = new Date().toDateString();
@@ -28,8 +29,6 @@ const HomeScreen = () => {
         const dateString = date.toISOString().slice(0, 10)
         return { ...acc, [dateString]: [] }
     }, {} as { [key: string]: string[] })
-
-    console.log(assignments)
 
     //For color indictors
     //check if  assignments[0] has a date within the week of the selected date
@@ -103,10 +102,6 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
     const dates = getDates(props.forDate)
     const month = props.forDate.toLocaleString('default', { month: 'long' })
     const year = props.forDate.getFullYear()
-
-    const getColor = (colorIndex: number) => {
-        return theme.colors[colorIndex - Math.floor(colorIndex/theme.colors.length)]
-    }
     
     const circleHeight = 5;
     return (
@@ -130,13 +125,13 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                                         <View style={{justifyContent: "center", alignItems: "center"}}>
                                                 <View style={{flexDirection: "row", height: circleHeight, justifyContent: "center", margin: 1, width: circleHeight*6}}>
                                                     {props.activeIndicies[index].slice(0,4).map((colorIndex) => {
-                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex)}} />
+                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, theme.colors)}} />
                                                     })
                                                     }
                                                 </View>
                                                 <View style={{flexDirection: "row", height: circleHeight, margin: 1, justifyContent: "center", width: circleHeight*6}}>
                                                     {props.activeIndicies[index].slice(4,8).map((colorIndex) => {
-                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex)}} />
+                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, theme.colors)}} />
                                                     })
                                                     }
                                                 </View>

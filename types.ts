@@ -11,9 +11,8 @@ export type RootStackParamList = {
   AddAssignment: { assignment: StoredAssignmentInfo };
   SelectListOption: { options: string[], selected: string, updateSelected: (selectedValue: string) => void /*category: selectType*/ };
   ColorTheme: {};
-  AddColorTheme: { };
-  EditColorTheme: { name: string, isEditable: boolean, colors: string[] };
-  SelectColor: { selectedColor: string, index: number, name: string};
+  EditColorTheme: { initialData?: {isEditable: boolean, colors: string[], name: string}, selectedColorData?: { color: string, index: number, name: string } };
+  SelectColor: { selectedColor: string, index: number, name: string };
 };
 
 export type HomeProps = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -23,11 +22,9 @@ export type AddAssignmentNavigatorProps = NativeStackNavigationProp<RootStackPar
 export type AddClassProps = NativeStackNavigationProp<RootStackParamList, 'AddClass'>;
 export type EditAssignmentTypesProps = NativeStackNavigationProp<RootStackParamList, 'EditAssignmentTypes'>;
 export type ColorTheme = NativeStackNavigationProp<RootStackParamList, 'ColorTheme'>;
-export type AddColorThemeProps = NativeStackNavigationProp<RootStackParamList, 'AddColorTheme'>;
 export type SelectColorProps = NativeStackNavigationProp<RootStackParamList, 'SelectColor'>;
 
-export type AddColorThemeRouteProps = RouteProp<RootStackParamList, 'AddColorTheme'>;
 export type EditColorThemeRouteProps = RouteProp<RootStackParamList, 'EditColorTheme'>;
-export type SelectedColorReturnRouteProps = RouteProp<RootStackParamList, 'SelectColor'>;
+export type SelectColorRouteProps = RouteProp<RootStackParamList, 'SelectColor'>;
 export type SelectScreenRouteProps = RouteProp<RootStackParamList, 'SelectListOption'>;
 export type AddAssignmentRouteProps = RouteProp<RootStackParamList, 'AddAssignment'>;

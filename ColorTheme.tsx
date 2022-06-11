@@ -39,7 +39,7 @@ const ColorThemeScreen = () => {
         }) :
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity onPress={() => {navigation.navigate("AddColorTheme",{})}}>
+                <TouchableOpacity onPress={() => {navigation.navigate("EditColorTheme",{})}}>
                     <Ionicons name="add" size={32} />
                 </TouchableOpacity>
             ),
@@ -75,7 +75,7 @@ const ColorThemeScreen = () => {
                             </View>
                         </View>
                     }
-                    onPress={()=>{isEditing ? navigation.navigate("AddColorTheme",{ name: item.name, isEditable: item.isEditable, colors: item.colors}) : dispatch(selectColorTheme(item.name))}}
+                    onPress={()=>{isEditing ? navigation.navigate("EditColorTheme",{initialData : { name: item.name, isEditable: item.isEditable, colors: item.colors }}) : dispatch(selectColorTheme(item.name))}}
                     onHighlightRow={separators.highlight}
                     onUnHighlightRow={separators.unhighlight}
                     accessory={isEditing ? "DisclosureIndicator" : (selected ? "Checkmark" : undefined)}

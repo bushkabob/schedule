@@ -9,6 +9,7 @@ import Dialog from "react-native-dialog";
 import SwipeableAssignmentCell from "./AssignmentViewCell";
 import ColorIndicator from "./ColorIndicator";
 import { RootState } from "./redux";
+import { getColor } from "./utils";
 
 interface DateAssignments {
     date: string,
@@ -128,6 +129,8 @@ const AssignmentsView = (props: AssignmentViewProps) => {
         //Getting a single list of clases for the day
         const usedClasses = item.assignments.reduce((prev, assignment) => {!prev.includes(assignment.class) && prev.push(assignment.class); return prev}, [] as string[])
         const colors = usedClasses.map((className) => classes.findIndex((classInfo) => classInfo === className))
+        console.log(colors)
+        console.log(colors.forEach((color) => console.log(Math.floor(color/(theme.colors.length)))))
         return (
             <View style={{marginTop: 10}} >
                 <View>
@@ -140,7 +143,7 @@ const AssignmentsView = (props: AssignmentViewProps) => {
                         <View style={{backgroundColor: "white", borderRadius: 30, alignItems: "center", flexDirection: "row", flexGrow: 1, height: 40}}>
                             <Text style={{fontSize:20, marginHorizontal: 20}} >{item.date.split(" ")[2]}</Text>
                             <View style={{flexDirection: "row", flexGrow: 1, justifyContent: "flex-end", marginHorizontal: 10}} >
-                                {colors.map((color) => <ColorIndicator key={color} style={{marginHorizontal: 2}} color={theme.colors[color - Math.floor(color/theme.colors.length)]} />)}
+                                {colors.map((color) => <ColorIndicator key={color} style={{marginHorizontal: 2}} color={getColor(color, theme.colors)} />)}
                             </View>
                         </View>
                         <View style={{flexDirection: "column", flexWrap: "wrap", flex:1}}>
@@ -153,7 +156,7 @@ const AssignmentsView = (props: AssignmentViewProps) => {
                                         setOldAssignment={setOldAssignment} 
                                         updateSwipeableRef={updateSwipeableRef}
                                         closeRow={closeRow}
-                                        color={theme.colors[classes.findIndex((classInfo) => classInfo === assignment.class)]}
+                                        color={getColor(classes.findIndex((classInfo) => classInfo === assignment.class), theme.colors)}
                                     />
                                 )
                             })}
