@@ -6,6 +6,7 @@ import BouncyCheckbox from "react-native-bouncy-checkbox"
 import { Swipeable } from "react-native-gesture-handler"
 import { useDispatch } from "react-redux"
 import { removeAssignment, StoredAssignmentInfo, updateAssignmentCompleted } from "./redux/assingmentsSlice"
+import { useTheme } from "./Theme/ThemeProvider"
 import { AddAssigmentProps } from "./types"
 
 interface SwipeableAssignmentCellProps {
@@ -22,6 +23,7 @@ const SwipeableAssignmentCell = (props: SwipeableAssignmentCellProps) => {
     const isOverdue = new Date(props.assignment.date) < new Date() && !props.assignment.completed;
     const dispatch = useDispatch()
     const navigation = useNavigation<AddAssigmentProps>()
+    const systemColors = useTheme()
 
     //Right action - appears on swipe
     const RightAction = (_: Animated.AnimatedInterpolation, dragX: Animated.AnimatedInterpolation, assignment: StoredAssignmentInfo) => {
@@ -39,10 +41,10 @@ const SwipeableAssignmentCell = (props: SwipeableAssignmentCellProps) => {
 
         return (
             <View style={{flexDirection: "row", marginRight: 15}}>
-                <Animated.View style={[{borderRadius: 30, backgroundColor: "gray", height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center", marginRight: 3}, {transform: [{scale: scaleEdit}]}]}>
+                <Animated.View style={[{borderRadius: 30, backgroundColor: systemColors.systemGray, height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center", marginRight: 3}, {transform: [{scale: scaleEdit}]}]}>
                     <Ionicons name='ellipsis-horizontal-circle-outline' color={"white"} size={24} onPress={()=>navigation.navigate("AddAssignment",{ assignment: assignment })} />
                 </Animated.View>
-                <Animated.View style={[{borderRadius: 30, backgroundColor: "red", height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center"}, {transform: [{scale: scaleDelete}]}]}>
+                <Animated.View style={[{borderRadius: 30, backgroundColor: systemColors.red, height: "100%", aspectRatio: 1, justifyContent: "center", alignItems: "center"}, {transform: [{scale: scaleDelete}]}]}>
                     <Ionicons 
                         name='trash-outline' 
                         color={"white"} 
@@ -63,9 +65,9 @@ const SwipeableAssignmentCell = (props: SwipeableAssignmentCellProps) => {
                 containerStyle={{}} 
                 renderRightActions={(progress, dragX) => RightAction(progress, dragX, props.assignment)}
             >
-                <View style={{padding: 10, flexDirection:"row", marginHorizontal: 10, justifyContent:"space-between", backgroundColor: "#f9f9f9", borderRadius: 10}} >
+                <View style={{padding: 10, flexDirection:"row", marginHorizontal: 10, justifyContent:"space-between", backgroundColor: systemColors.elevated, borderRadius: 10}} >
                     <View style={{justifyContent: "center"}}>
-                        <Text style={isOverdue?{color:"red"}:{}}>
+                        <Text style={isOverdue?{color:systemColors.red}:{color:systemColors.textColor}}>
                             {props.assignment.name + " - " + props.assignment.class}
                         </Text>
                     </View>

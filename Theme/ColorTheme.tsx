@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ColorTheme } from '../types';
 import { ColorThemeData } from '../redux/colorThemeSlice';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useTheme } from './ThemeProvider';
 interface ThemeData {
     name: string,
     colors: string[],
@@ -27,7 +28,7 @@ const ColorThemeScreen = () => {
     const [isEditing, setIsEditing] = useState(false)
     const dispatch = useDispatch()
     const navigation = useNavigation<ColorTheme>()
-
+    const systemColors = useTheme()
 
     //Add buttons to the header
     useLayoutEffect(() => {
@@ -63,6 +64,7 @@ const ColorThemeScreen = () => {
                                     letterSpacing: -0.32,
                                     alignSelf: "center",
                                     flexShrink: 1,
+                                    color: systemColors.textColor,
                                 }}
                                 numberOfLines={1}
                             >

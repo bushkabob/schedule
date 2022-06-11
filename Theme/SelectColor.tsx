@@ -15,6 +15,7 @@ import {
 } from 'react-native-color';
 import { TextInput } from 'react-native-gesture-handler';
 import tinycolor from 'tinycolor2';
+import { useTheme } from '../Theme/ThemeProvider';
 import { ColorTheme, SelectColorRouteProps } from '../types';
 
 const SelectColor = () => {
@@ -32,6 +33,7 @@ const SelectColor = () => {
     const updatedColor = tinycolor({h: hue, s: saturation, l: lightness}).toHsl()
     const colorHex = tinycolor(updatedColor).toHexString()
     const [colorText, setColorText] = useState(colorHex)
+    const systemColors = useTheme()
 
     // useEffect(() => {
     //     LogBox.ignoreLogs(['Animated: `useNativeDriver`']);
@@ -51,7 +53,7 @@ const SelectColor = () => {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={[styles.container, styles.shadow]}>
+            <View style={[styles.container, styles.shadow, {backgroundColor: systemColors.elevated}]}>
                 <View style={[styles.centerItem, styles.shadow, {backgroundColor: "white"}]}  >
                     <TextInput 
                         style={{flex: 1, fontSize: 20, width: "100%", textAlign: "center"}}
@@ -102,7 +104,6 @@ export default SelectColor;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
     marginTop: 20,
     marginHorizontal: 15,
     marginBottom: 30,

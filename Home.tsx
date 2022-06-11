@@ -1,18 +1,15 @@
-import { View, StyleSheet, Appearance } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import {  useState } from "react";
 import AssignmentsView from "./AssignmentsView";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
-import { useTheme } from "./Theme/ThemeProvider";
 import SwipeableCalendar from "./SwipeableCalendar";
 
 const HomeScreen = () => {
     const initialDate = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(initialDate)
     const [selectedDate, setSelectDate] = useState(initialDate)
-    const isDark = Appearance.getColorScheme() === "dark";
-    console.log(isDark)
 
     const date = new Date(currentDate)
     const day = date.getDay()

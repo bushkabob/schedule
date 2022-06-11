@@ -6,6 +6,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { useSelector } from "react-redux"
 import { RootState } from "./redux"
 import { getColor } from "./utils";
+import { useTheme } from "./Theme/ThemeProvider";
 
 interface swipeableCalendarProps {
     forDate: Date,
@@ -17,6 +18,7 @@ interface swipeableCalendarProps {
 }
 
 const SwipeableCalendar = (props: swipeableCalendarProps) => {
+    const systemColors = useTheme()
     //getting color theme
     const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
     //create a function that returns an array of dates for the months that contain the forDate starting at Sunday and ending at Saturday
@@ -40,8 +42,8 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
     const circleHeight = 5;
     return (
         <View style={styles.container}>
-            <View style={{width:"100%", backgroundColor: "white"}}>
-                <Text style={{alignSelf:"center", paddingTop: 10}}>{month + ", " + year}</Text>
+            <View style={{width:"100%"}}>
+                <Text style={{alignSelf:"center", paddingTop: 10, color: systemColors.textColor}}>{month + ", " + year}</Text>
                 <GestureRecognizer onSwipeRight={props.decrement} onSwipeLeft={props.increment} >
                     <View style={styles.calendarTitleRow}>
                         <TouchableOpacity onPress={props.decrement}>
@@ -50,9 +52,9 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                             {dates.map(([day, date, selected], index) => (
                                 <View key={day}>
                                     <View style={{flexGrow: 1}}>
-                                        <Text key={day} style={[styles.calendarTitle]}>{day}</Text>
+                                        <Text key={day} style={[styles.calendarTitle, {color: systemColors.textColor}]}>{day}</Text>
                                         <View style={[{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', aspectRatio: 1, borderRadius: 60}, selected?{backgroundColor: "red"}:{}]}>
-                                            <Text style={[styles.calendarTitle, {color:selected?"white":"black"}]} key={date.getDate()}>{date.getDate()}</Text>
+                                            <Text style={[styles.calendarTitle, {color:selected?"white":systemColors.textColor}]} key={date.getDate()}>{date.getDate()}</Text>
                                         </View>
                                     </View>
                                     <View>

@@ -1,10 +1,8 @@
-import React, { createContext, useCallback, useEffect } from 'react';
-import { ColorSchemeName, useColorScheme } from 'react-native';
+import React, { createContext } from 'react';
+import { ColorSchemeName } from 'react-native';
 import {lightColors, darkColors} from './colorThemes';
 
-const ThemeContext = createContext({
-    isDark: false,
-});
+const ThemeContext = createContext(lightColors);
 
 type ThemeContextProvider = {
     colorTheme: ColorSchemeName,
@@ -13,11 +11,12 @@ type ThemeContextProvider = {
 
 export const ThemeContextProvider = (props: ThemeContextProvider) => {
 
-  return (
-        <ThemeContext.Provider value={{isDark: props.colorTheme === "dark"}}>
-            {props.children}
-        </ThemeContext.Provider>
-    );
+    const colors = props.colorTheme === "dark" ? darkColors : lightColors
+    return (
+            <ThemeContext.Provider value={{...colors, ...{}}}>
+                {props.children}
+            </ThemeContext.Provider>
+        );
 };
 
 // Custom hook to get the theme object returns {isDark, colors, setScheme}

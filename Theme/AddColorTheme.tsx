@@ -9,6 +9,7 @@ import { RootState } from '../redux';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
+import { useTheme } from './ThemeProvider';
 
 const RightAction = () => (
     <View style={{backgroundColor: "red", width: "100%", alignItems: "flex-end", justifyContent: "center", padding: 10}}>
@@ -33,13 +34,15 @@ const ColorCell = (props: ColorCellProps) => {
     const navigation = useNavigation<SelectColorProps>();
     const topBorder = props.index === 0 ? {borderTopColor: "#C8C7CC", borderTopWidth: StyleSheet.hairlineWidth} : {}
     const bottomBorder = props.isEnd ?  {borderBottomColor: "#C8C7CC", borderBottomWidth: StyleSheet.hairlineWidth} : {}
+    const systemColors = useTheme()
+
     return (
         <ScaleDecorator>
             <Swipeable hitSlop={{"left": -50}} renderRightActions={props.colorLength>1?RightAction:()=><View></View>} onSwipeableOpen={()=>props.removeColor(props.index)} >
-                <Cell 
+                <Cell
                     cellContentView={
                         <View style={{flexGrow: 1, flexDirection: "row", height: "100%"}}>
-                            <Text  style={styles.textField} numberOfLines={1}>
+                            <Text  style={[styles.textField, {color: systemColors.textColor}]} numberOfLines={1}>
                                 {"Color " + (props.index + 1)}
                             </Text>
                             <View style={{flexDirection: "row", height: "100%"}}>
@@ -69,7 +72,8 @@ const AddColorTheme = () => {
     const isEditable = initialData.isEditable
     const colorThemeNames = useSelector((state: RootState) => state.colorTheme.colorThemes.map(({name}) => name))
     const dispatch = useDispatch()
-    //Start of code to update the color based on the selected color
+    const systemColors = useTheme()
+    //Start of code to update the color based on the selected colordirdir
     const updateSelectedColor = (index: number, color: string) => {
         typeof color !== "undefined" && setColors(colors.map((c, i) => i === index ? color : c))
     }
@@ -140,7 +144,7 @@ const AddColorTheme = () => {
                                 <TextInput 
                                     defaultValue={name}
                                     pointerEvents={isEditable ? 'auto' : 'none'}
-                                    style={styles.textField}
+                                    style={[styles.textField, {color: systemColors.textColor}]}
                                     placeholder={"Theme Name"}
                                     onChangeText={(text) => setName(text)}
                                 />

@@ -10,6 +10,7 @@ import SwipeableAssignmentCell from "./AssignmentViewCell";
 import ColorIndicator from "./ColorIndicator";
 import { RootState } from "./redux";
 import { getColor } from "./utils";
+import { useTheme } from "./Theme/ThemeProvider";
 
 interface DateAssignments {
     date: string,
@@ -30,6 +31,7 @@ const AssignmentsView = (props: AssignmentViewProps) => {
     const swipeableRefs = useRef<{[key:string]:Swipeable|null}>({})
     const [prevOpenedRow, setPrevOpenedRow] = useState<Swipeable | null>(null)
     const [dialogVisible, setDialogVisible] = useState(false)
+    const systemColors = useTheme()
 
     //Class colors
     const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
@@ -133,13 +135,13 @@ const AssignmentsView = (props: AssignmentViewProps) => {
             <View style={{marginTop: 10}} >
                 <View>
                     {item.isFirstofMonth && 
-                        <View style={[{backgroundColor: "white", marginBottom: 10}, styles.shadow]}> 
-                            <Text style={{marginHorizontal: 10, fontSize: 30, fontWeight: "bold", paddingVertical:5}}>{item.date.split(" ")[1]}</Text> 
+                        <View style={[{marginBottom: 10}, styles.shadow]}> 
+                            <Text style={{marginHorizontal: 10, fontSize: 30, fontWeight: "bold", paddingVertical:5, color: systemColors.textColor}}>{item.date.split(" ")[1]}</Text> 
                         </View>
                     }
-                    <View style={[{paddingVertical: 10, backgroundColor: "white"}, styles.shadow]} >
-                        <View style={{backgroundColor: "white", borderRadius: 30, alignItems: "center", flexDirection: "row", flexGrow: 1, height: 40}}>
-                            <Text style={{fontSize:20, marginHorizontal: 20}} >{item.date.split(" ")[2]}</Text>
+                    <View style={[{paddingVertical: 10}, styles.shadow]} >
+                        <View style={{alignItems: "center", flexDirection: "row", flexGrow: 1, height: 40}}>
+                            <Text style={{fontSize:20, marginHorizontal: 20, color: systemColors.textColor}} >{item.date.split(" ")[2]}</Text>
                             <View style={{flexDirection: "row", flexGrow: 1, justifyContent: "flex-end", marginHorizontal: 10}} >
                                 {colors.map((color) => <ColorIndicator key={color} style={{marginHorizontal: 2}} color={getColor(color, theme.colors)} />)}
                             </View>
@@ -196,12 +198,6 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
         alignItems: "center",
-        backgroundColor: "white",
-    },
-    line: {
-        borderBottomColor: 'black',
-        borderBottomWidth: 1,
-        width: "100%",
     },
     shadow: {
         // shadowColor: '#000', 
