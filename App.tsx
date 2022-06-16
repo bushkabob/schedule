@@ -6,10 +6,10 @@ import { Provider } from 'react-redux';
 import redux from './redux/configureStore'
 import { HomeHeaderLeft, HomeHeaderRight } from './HomeHeader';
 import HomeScreen from './Home';
-import SettingsScreen from './Settings'
-import AddClass from "./ClassSettings"
+import SettingsScreen from './Settings/Settings'
+import AddClass from "./Settings/ClassSettings"
 import AddAssignmentNavigator from './Add Assingment/AddAssingmentNavigator';
-import AddAssignmentType from "./AssignmentTypeSettings"
+import AddAssignmentType from "./Settings/AssignmentTypeSettings"
 import AddAssignment from './Add Assingment/AddAssingment';
 import SelectOptionScreen from './Add Assingment/SelectOptionScreen';
 import ColorTheme from './Theme/ColorTheme';

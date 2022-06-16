@@ -41,7 +41,7 @@ const ColorThemeScreen = () => {
         navigation.setOptions({
             headerRight: () => (
                 <TouchableOpacity onPress={() => {navigation.navigate("EditColorTheme",{})}}>
-                    <Ionicons name="add" size={32} />
+                    <Ionicons name="add" size={32} color={systemColors.textColor} />
                 </TouchableOpacity>
             ),
             headerLeft: () => (

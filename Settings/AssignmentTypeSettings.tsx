@@ -6,8 +6,8 @@ import { useLayoutEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native'
 import Dialog from 'react-native-dialog'
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from './redux';
-import { addAssignmentType, removeAssignmentType, reorderAssignmentTypes } from './redux/assignmentTypeSlice';
+import { RootState } from '../redux';
+import { addAssignmentType, removeAssignmentType, reorderAssignmentTypes } from '../redux/assignmentTypeSlice';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 
 const RightAction = () => (

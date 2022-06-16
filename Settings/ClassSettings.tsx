@@ -6,9 +6,13 @@ import { useLayoutEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native'
 import Dialog from 'react-native-dialog'
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from './redux';
-import { addClass, removeClass, reorderClasses } from './redux/classSlice';
+import { RootState } from '../redux';
+import { addClass, removeClass, reorderClasses } from '../redux/classSlice';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
+import { useTheme } from '../Theme/ThemeProvider';
+import ColorIndicator from '../ColorIndicator';
+import { getColor } from '../utils';
+import { ColorTheme } from '../types';
 
 const RightAction = () => (
     <View style={{backgroundColor: "red", width: "100%", alignItems: "flex-end", justifyContent: "center", padding: 10}}>
@@ -21,9 +25,11 @@ interface AddClassHeaderRightProps {
 }
 
 export const AddClassHeaderRight = (props: AddClassHeaderRightProps) => {
+    const colorTheme = useTheme()
+
     return (
         <TouchableOpacity onPress={() => {props.updateEnteringClass(true)}}>
-            <Ionicons name="add" size={32}/>
+            <Ionicons name="add" color={colorTheme.textColor} size={32}/>
         </TouchableOpacity>
     )
 }
@@ -33,7 +39,8 @@ const ClassSettings = () => {
     const dispatch = useDispatch()
     const [isEnteringClass, updateEnteringClass] = useState(false);
     const [newName, updateNewName] = useState("");
-    const navigation = useNavigation()
+    const navigation = useNavigation<ColorTheme>()
+    const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
 
     const removeClassAtIndex = (item: string) => {
         // updateClasses((prevState) => {
@@ -45,10 +52,21 @@ const ClassSettings = () => {
     }
 
     const renderRow = (item: string, index: number | undefined, drag: ()=>void, isActive: boolean): JSX.Element => {
+        const val = (typeof index!=="undefined")?index:0
         return (
             <ScaleDecorator>
                 <Swipeable hitSlop={{left: -50}} enabled={!isActive} key={item} renderRightActions={RightAction} onSwipeableOpen={()=>removeClassAtIndex(item)}>
-                    <Cell title={item} cellAccessoryView={<Ionicons onLongPress={drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"}/>} />
+                    <Cell 
+                        title={item} 
+                        cellAccessoryView={
+                            <View style={{flexDirection: "row"}} >
+                                <TouchableOpacity onPress={()=>{navigation.navigate("EditColorTheme",{initialData : { name: theme.name, isEditable: theme.isEditable, colors: theme.colors}})}}>
+                                    <ColorIndicator color={getColor(val, theme.colors)} style={{marginRight: 10}} />
+                                </TouchableOpacity>
+                                <Ionicons onLongPress={drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"}/>
+                            </View>
+                        } 
+                    />
                 </Swipeable>
                 {typeof index !== "undefined" && index < classes.length-1 && <Separator isHidden={isActive} />}
             </ScaleDecorator>

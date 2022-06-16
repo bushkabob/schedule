@@ -110,6 +110,9 @@ const AddColorTheme = () => {
                 headerRight: () => <Button title='Edit' onPress={() => setIsEditing(true)} />,
                 headerLeft: () => undefined
             })
+            route.params.initialData && route.params.initialData.colors.length > 1 && navigation.setOptions({
+                title: name
+            })
         } else {
             navigation.setOptions({
                 title: name,

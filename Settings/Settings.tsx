@@ -2,9 +2,9 @@ import { View, StyleSheet, FlatList, ListRenderItemInfo } from "react-native"
 import { StatusBar } from 'expo-status-bar';
 import { Cell, Separator, TableView } from "react-native-tableview-simple";
 import { useNavigation } from "@react-navigation/native";
-import { AddClassProps, EditAssignmentTypesProps } from "./types";
+import { AddClassProps, EditAssignmentTypesProps } from "../types";
 import { useDispatch } from "react-redux";
-import { removeAllAssignments } from "./redux/assingmentsSlice";
+import { removeAllAssignments } from "../redux/assingmentsSlice";
 import { useState } from "react";
 import { CellInterface } from "react-native-tableview-simple/lib/typescript/components/Cell";
 
