@@ -1,7 +1,7 @@
 // Light theme colors
 export const lightColors = {
     background: '#FFFFFF',
-    elevated: 'rgb(204, 204, 204)',
+    elevated: 'rgb(242, 242, 247)',
     textColor: '#000000',
     primary: '#512DA8',
     text: '#121212',

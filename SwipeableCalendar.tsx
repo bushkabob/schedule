@@ -47,18 +47,18 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                 <GestureRecognizer onSwipeRight={props.decrement} onSwipeLeft={props.increment} >
                     <View style={styles.calendarTitleRow}>
                         <TouchableOpacity onPress={props.decrement}>
-                            <Ionicons name="ios-arrow-back" size={16} />
+                            <Ionicons name="ios-arrow-back" color={systemColors.textColor} size={16} />
                         </TouchableOpacity>
                             {dates.map(([day, date, selected], index) => (
                                 <View key={day}>
                                     <View style={{flexGrow: 1}}>
                                         <Text key={day} style={[styles.calendarTitle, {color: systemColors.textColor}]}>{day}</Text>
-                                        <View style={[{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', aspectRatio: 1, borderRadius: 60}, selected?{backgroundColor: "red"}:{}]}>
+                                        <View style={[{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', aspectRatio: 1, borderRadius: 60}, selected?{backgroundColor: systemColors.red}:{}]}>
                                             <Text style={[styles.calendarTitle, {color:selected?"white":systemColors.textColor}]} key={date.getDate()}>{date.getDate()}</Text>
                                         </View>
                                     </View>
                                     <View>
-                                        <View style={{justifyContent: "center", alignItems: "center"}}>
+                                        <View style={{justifyContent: "center", alignItems: "center", paddingTop: 3}}>
                                                 <View style={{flexDirection: "row", height: circleHeight, justifyContent: "center", margin: 1, width: circleHeight*6}}>
                                                     {props.activeIndicies[index].slice(0,4).map((colorIndex) => {
                                                         return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, theme.colors)}} />
@@ -76,7 +76,7 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                                 </View>
                             ))}
                         <TouchableOpacity onPress={props.increment} >
-                            <Ionicons name="ios-arrow-forward" size={16} />
+                            <Ionicons name="ios-arrow-forward" color={systemColors.textColor} size={16} />
                         </TouchableOpacity>
                     </View>
                 </GestureRecognizer>

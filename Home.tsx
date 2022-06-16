@@ -5,11 +5,13 @@ import AssignmentsView from "./AssignmentsView";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
 import SwipeableCalendar from "./SwipeableCalendar";
+import { useTheme } from "./Theme/ThemeProvider";
 
 const HomeScreen = () => {
     const initialDate = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(initialDate)
     const [selectedDate, setSelectDate] = useState(initialDate)
+    const systemColors = useTheme()
 
     const date = new Date(currentDate)
     const day = date.getDay()
@@ -62,7 +64,7 @@ const HomeScreen = () => {
     return (
         <View style={styles.container}>
             <StatusBar style="auto" />
-            <View style={styles.calendarView}>
+            <View style={[styles.calendarView, {backgroundColor: systemColors.background}]}>
                <SwipeableCalendar activeIndicies={activeIndicies} selectedDate={new Date(selectedDate)} setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  forDate={new Date(currentDate)} decrement={decrementDate} increment={incrementDate} />
                 <AssignmentsView assignments={assignments} selectedDate={currentDate} />
             </View>

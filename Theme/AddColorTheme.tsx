@@ -6,7 +6,7 @@ import { ColorTheme, EditColorThemeRouteProps, SelectColorProps } from '../types
 import { useDispatch, useSelector } from 'react-redux';
 import { addColorTheme, removeColorTheme } from '../redux/colorThemeSlice';
 import { RootState } from '../redux';
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
+import { NestableDraggableFlatList, NestableScrollContainer, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
 import { useTheme } from './ThemeProvider';
@@ -22,7 +22,7 @@ interface ColorCellProps {
     index: number
     isEditable: boolean
     isEditing: boolean
-    isEnd: boolean
+    isActive: boolean
     colorLength: number
     ogName: string
     removeColor: (index: number) => void
@@ -30,15 +30,15 @@ interface ColorCellProps {
 }
 
 const ColorCell = (props: ColorCellProps) => {
-    const [isActive, setIsActive] = useState(false);
+    //const [isActive, setIsActive] = useState(false);
     const navigation = useNavigation<SelectColorProps>();
-    const topBorder = props.index === 0 ? {borderTopColor: "#C8C7CC", borderTopWidth: StyleSheet.hairlineWidth} : {}
-    const bottomBorder = props.isEnd ?  {borderBottomColor: "#C8C7CC", borderBottomWidth: StyleSheet.hairlineWidth} : {}
+    //const topBorder = props.index === 0 ? {borderTopColor: "#C8C7CC", borderTopWidth: StyleSheet.hairlineWidth} : {}
+    //const bottomBorder = props.isEnd ?  {borderBottomColor: "#C8C7CC", borderBottomWidth: StyleSheet.hairlineWidth} : {}
     const systemColors = useTheme()
 
     return (
         <ScaleDecorator>
-            <Swipeable hitSlop={{"left": -50}} renderRightActions={props.colorLength>1?RightAction:()=><View></View>} onSwipeableOpen={()=>props.removeColor(props.index)} >
+            <Swipeable enabled={!props.isActive} hitSlop={{"left": -50}} renderRightActions={props.colorLength>1?RightAction:()=><View></View>} onSwipeableOpen={()=>props.removeColor(props.index)} >
                 <Cell
                     cellContentView={
                         <View style={{flexGrow: 1, flexDirection: "row", height: "100%"}}>
@@ -54,10 +54,9 @@ const ColorCell = (props: ColorCellProps) => {
                     onPress={()=>navigation.navigate("SelectColor", {selectedColor: props.color, index: props.index, name: props.ogName })}
                     accessory={props.isEditable?"DisclosureIndicator":undefined}
                     cellAccessoryView={props.isEditing&&<Ionicons style={{paddingLeft: 20}} onLongPress={props.drag} name="reorder-three-outline" size={24} color={Appearance.getColorScheme()==="light"?"black":"white"} />}
-                    contentContainerStyle={[topBorder, bottomBorder]}
                 />
             </Swipeable>
-            {props.index < props.colorLength-1 && <Separator isHidden={isActive} />}
+            {props.index < props.colorLength-1 && <Separator isHidden={props.isActive} />}
         </ScaleDecorator>
     )
 }
@@ -94,23 +93,10 @@ const AddColorTheme = () => {
     }
     
     //Renders Item
-    const renderItem = (color: string, index: number, drag: ()=>void) => {
-        return <ColorCell ogName={initialData.name} drag={drag} color={color} index={index} isEditable={isEditable} removeColor={removeColorAtIndex} isEnd={index===colors.length-1} colorLength={colors.length} isEditing={isEditing} />
+    const renderItem = (color: string, index: number, drag: ()=>void, active: boolean) => {
+        return <ColorCell ogName={initialData.name} drag={drag} color={color} index={index} isEditable={isEditable} removeColor={removeColorAtIndex} isActive={active} colorLength={colors.length} isEditing={isEditing} />
     }
 
-    /*
-    <Button
-        title="Save" 
-        onPress={
-            () => (
-                dispatch(addColorTheme({ "name": name, "isEditable": isEditable, "colors": colors })), 
-                dispatch(removeColorTheme(initialData.name)), 
-                navigation.goBack()
-            )
-        } 
-        disabled={name === "" || (colorThemeNames.includes(name) &&  initialData.name !== name)}
-    />
-    */
     //Add Save button and make clickable when appropriate criteria is met
     useLayoutEffect(() => {
         if (isEditable) {
@@ -130,14 +116,10 @@ const AddColorTheme = () => {
             })
         }
     })
+    
     return (
-        <TableView style={styles.container}>
-            <DraggableFlatList 
-                keyExtractor={(_, index)=>{return index.toString() + colors.length.toString()}}
-                data={colors}
-                renderItem={(info)=>((typeof info.index !== "undefined") ? renderItem(info.item, info.index, info.drag) : <View></View>)} 
-                containerStyle={{flex: 1}}
-                ListHeaderComponent={
+        <NestableScrollContainer style={{width: "100%", height: "100%"}}>
+            <TableView style={styles.container}>
                     <Section>
                         <Cell 
                             cellContentView={
@@ -151,8 +133,15 @@ const AddColorTheme = () => {
                             }
                         />
                     </Section>
-                }
-                ListFooterComponent={
+                    <Section>
+                        <NestableDraggableFlatList 
+                            keyExtractor={(_, index)=>{return index.toString() + colors.length.toString()}}
+                            data={colors}
+                            renderItem={(info)=>((typeof info.index !== "undefined") ? renderItem(info.item, info.index, info.drag, info.isActive) : <View></View>)} 
+                            containerStyle={{flex: 1}}
+                            dragHitSlop={{"left": -50}}
+                        />
+                    </Section>
                     <View>
                         {isEditable && (
                             <View>
@@ -186,10 +175,8 @@ const AddColorTheme = () => {
                             </View>
                         )}
                     </View>
-                }
-                dragHitSlop={{"left": -50}}
-            />
-        </TableView>
+            </TableView>
+        </NestableScrollContainer>
     )
 }
 
@@ -203,6 +190,7 @@ const AddColorTheme = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        height: "100%",
         width: "100%",
     },
     textField: {
