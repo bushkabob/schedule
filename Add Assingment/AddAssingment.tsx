@@ -11,6 +11,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { addAssignment, updateAssignment, StoredAssignmentInfo } from '../redux/assingmentsSlice'
 import { AddAssignmentRouteProps } from '../types';
 import { AddAssignmentRouteProps as AddAssignmentRouteProps2 } from './types';
+import { useTheme } from '../Theme/ThemeProvider';
 
 enum pickerState {
     none,
@@ -39,6 +40,7 @@ const AddAssingment = () => {
     const [selectedDay, setSelectedDay] = useState(typeof assignment !== "undefined" ? new Date(assignment.date) : initialDate);
     const [datePickerVisible, setDatePickerVisible] = useState(pickerState.none);
     const navigation = useNavigation<SelectScreenProps>()
+    const systemColors = useTheme()
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -82,7 +84,7 @@ const AddAssingment = () => {
             <ScrollView style={styles.container} scrollEnabled>
                 <TableView style={styles.tableView}>
                     <Cell cellContentView={
-                        <TextInput defaultValue={assignmentName} placeholder='Assignment Name' allowFontScaling style={styles.textInput} onChangeText={(text)=>(setAssingmentName(text))} />
+                        <TextInput defaultValue={assignmentName} placeholder='Assignment Name' allowFontScaling style={[styles.textInput, {color: systemColors.textColor}]} onChangeText={(text)=>(setAssingmentName(text))} />
                     } />
                     <Separator />
                     <Cell cellStyle="RightDetail" title="Class" detail={selectedClass} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { options: classOptions, selected: selectedClass, updateSelected: (value: string) => setSelectedClass(value)})}/>
