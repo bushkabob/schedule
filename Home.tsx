@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text, VirtualizedList } from "react-native";
 import { StatusBar } from 'expo-status-bar';
 import {  useState } from "react";
 import AssignmentsView from "./AssignmentsView";
@@ -6,12 +6,45 @@ import { useSelector } from "react-redux";
 import { RootState } from "./redux";
 import SwipeableCalendar from "./SwipeableCalendar";
 import { useTheme } from "./Theme/ThemeProvider";
+import Animated, { Easing, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
 
 const HomeScreen = () => {
     const initialDate = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(initialDate)
     const [selectedDate, setSelectDate] = useState(initialDate)
     const systemColors = useTheme()
+
+    //Gesture Handeler for the calendar
+    const y = useSharedValue(0)
+
+    type GestureCTX = {
+        startY: number
+    }
+
+    const gestureHandler = useAnimatedGestureHandler<
+        PanGestureHandlerGestureEvent,
+        GestureCTX
+    >({
+        onStart: (_, ctx) => {
+            ctx.startY = y.value
+        },
+        onActive: (event, ctx) => {
+            if(ctx.startY + event.translationY < 601 && ctx.startY + event.translationY > 120) {
+                y.value = ctx.startY + event.translationY
+            }
+            console.log(y.value)
+        },
+        onEnd: () => {
+            y.value >= 450 ? y.value = withTiming(600, { easing: Easing.out(Easing.exp) }) : y.value = withTiming(120, { easing: Easing.out(Easing.exp) })
+        }
+    })
+    
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            height: y.value,
+        }
+    })
 
     const date = new Date(currentDate)
     const day = date.getDay()
@@ -21,6 +54,7 @@ const HomeScreen = () => {
     const weekStartString = weekStart.toISOString()
     const weekEndString = new Date(date.setDate(weekStart.getDate() + 6)).toISOString()
     const assignments = useSelector((state: RootState) => state.assignments.filter(assignment => !assignment.completed || assignment.date > weekStartString));
+
     //create an object that contains that has the dates for the week in the format of "yyyy-mm-dd" as the keys and empty arrays as the values
     const weekDates = Array.from(Array(7).keys()).reduce((acc, _, i) => {
         const date = new Date(weekStartString)
@@ -60,19 +94,39 @@ const HomeScreen = () => {
             return newDate.toDateString();
         })
     }
+    
+    // const gestureHandler = (event: GestureEvent<PanGestureHandlerEventPayload>) => {
+    //     console.log(event.nativeEvent.translationY)
+    // }
 
     return (
         <View style={styles.container}>
             <StatusBar style="auto" />
             <View style={[styles.calendarView, {backgroundColor: systemColors.background}]}>
-               <SwipeableCalendar activeIndicies={activeIndicies} selectedDate={new Date(selectedDate)} setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  forDate={new Date(currentDate)} decrement={decrementDate} increment={incrementDate} />
+                <Animated.View style={[animatedStyle, styles.shadow, {position: "absolute", zIndex: 1, top: 0, width: "100%", height: 120, backgroundColor: systemColors.background, borderBottomLeftRadius: 30, borderBottomRightRadius: 30}]} {...gestureHandler} >
+                    <SwipeableCalendar 
+                        activeIndicies={activeIndicies} 
+                        selectedDate={new Date(selectedDate)} 
+                        setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  
+                        forDate={new Date(currentDate)} 
+                        decrement={decrementDate} 
+                        increment={incrementDate} 
+                    /> 
+                    <View style={{flex: 1}} />
+                        <PanGestureHandler onGestureEvent={gestureHandler} hitSlop={{top: 5, bottom: 5, left: 50, right: 50}}>
+                            <Animated.View>
+                                <View style={[styles.pullTab, {backgroundColor: systemColors.systemGray}]} />
+                            </Animated.View>
+                        </PanGestureHandler>
+                </Animated.View>
+                <View style={{height: 120}} />
                 <AssignmentsView assignments={assignments} selectedDate={currentDate} />
             </View>
         </View>
     );
 }
 
-/*const Calendar = () => {
+const Calendar = () => {
     const [selectedDate, updateSelectedDate] = useState(new Date(Date.now()))
 
     //make a list
@@ -146,7 +200,7 @@ const HomeScreen = () => {
             <VirtualizedList<(Date|null)[]> keyExtractor={(_, index) => {return index.toString()}} data={datesArray} renderItem={({ item }) => renderItem(item)} getItemCount={()=>(Math.floor(datesArray.length/7)+1)} getItem={(data, i)=>data.slice(i*7,i*7+7)} />
         </View>
     )
-}*/
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -157,6 +211,28 @@ const styles = StyleSheet.create({
       height: '100%',
       justifyContent: 'center',
       flexDirection: "column",
+    },
+    pullTab: {
+        height: 5,
+        width: "30%",
+        alignSelf: "center",
+        marginVertical: 5,
+        borderRadius: 5,
+        justifyContent: "flex-end"
+    },
+    shadow: {
+        shadowColor: '#000', 
+        marginBottom: 3, 
+        shadowOffset: { width: 0, height: 1 }, 
+        shadowOpacity: 0.3, 
+        shadowRadius: 4
+    },
+    calendarTitleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingTop: 10,
     },
 });
 

@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addAssignment, updateAssignment, StoredAssignmentInfo } from '../redux/assingmentsSlice'
+import { addAssignment, updateAssignment } from '../redux/assingmentsSlice'
 import { AddAssignmentRouteProps } from '../types';
 import { AddAssignmentRouteProps as AddAssignmentRouteProps2 } from './types';
 import { useTheme } from '../Theme/ThemeProvider';

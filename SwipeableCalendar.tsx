@@ -7,8 +7,9 @@ import { useSelector } from "react-redux"
 import { RootState } from "./redux"
 import { getColor } from "./utils";
 import { useTheme } from "./Theme/ThemeProvider";
+import { ColorThemeData } from "./redux/colorThemeSlice";
 
-interface swipeableCalendarProps {
+interface SwipeableCalendarProps {
     forDate: Date,
     increment: () => void,
     decrement: () => void,
@@ -17,11 +18,20 @@ interface swipeableCalendarProps {
     activeIndicies: number[][]
 }
 
-const SwipeableCalendar = (props: swipeableCalendarProps) => {
+const SwipeableCalendar = (props: SwipeableCalendarProps) => {
     const systemColors = useTheme()
     //getting color theme
     const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
     //create a function that returns an array of dates for the months that contain the forDate starting at Sunday and ending at Saturday
+    const month = props.forDate.toLocaleString('default', { month: 'long' })
+    const year = props.forDate.getFullYear()
+    return (
+        <WeekRow {...props} theme={theme} />
+    )
+}
+
+const WeekRow = (props: SwipeableCalendarProps & {theme: ColorThemeData}) => {
+    const systemColors = useTheme()
     const getDates = (forDate: Date) => {
         const month = forDate.getMonth()
         const year = forDate.getFullYear()
@@ -34,16 +44,12 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
         }
         return dates
     }
-
+    //<Text style={{alignSelf:"center", paddingTop: 10, color: systemColors.textColor}}>{month + ", " + year}</Text>
     const dates = getDates(props.forDate)
-    const month = props.forDate.toLocaleString('default', { month: 'long' })
-    const year = props.forDate.getFullYear()
-    
     const circleHeight = 5;
     return (
         <View style={styles.container}>
             <View style={{width:"100%"}}>
-                <Text style={{alignSelf:"center", paddingTop: 10, color: systemColors.textColor}}>{month + ", " + year}</Text>
                 <GestureRecognizer onSwipeRight={props.decrement} onSwipeLeft={props.increment} >
                     <View style={styles.calendarTitleRow}>
                         <TouchableOpacity onPress={props.decrement}>
@@ -61,13 +67,13 @@ const SwipeableCalendar = (props: swipeableCalendarProps) => {
                                         <View style={{justifyContent: "center", alignItems: "center", paddingTop: 3}}>
                                                 <View style={{flexDirection: "row", height: circleHeight, justifyContent: "center", margin: 1, width: circleHeight*6}}>
                                                     {props.activeIndicies[index].slice(0,4).map((colorIndex) => {
-                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, theme.colors)}} />
+                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, props.theme.colors)}} />
                                                     })
                                                     }
                                                 </View>
                                                 <View style={{flexDirection: "row", height: circleHeight, margin: 1, justifyContent: "center", width: circleHeight*6}}>
                                                     {props.activeIndicies[index].slice(4,8).map((colorIndex) => {
-                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, theme.colors)}} />
+                                                        return <View key={colorIndex} style={{height: circleHeight, width: circleHeight, marginHorizontal: 1, borderRadius: 60, backgroundColor: getColor(colorIndex, props.theme.colors)}} />
                                                     })
                                                     }
                                                 </View>
