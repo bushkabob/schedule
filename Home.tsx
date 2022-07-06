@@ -1,19 +1,21 @@
-import { View, StyleSheet, Text, VirtualizedList } from "react-native";
+import { View, StyleSheet, Text, VirtualizedList, Dimensions } from "react-native";
 import { StatusBar } from 'expo-status-bar';
-import {  useState } from "react";
+import {  useEffect, useLayoutEffect, useRef, useState } from "react";
 import AssignmentsView from "./AssignmentsView";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
 import SwipeableCalendar from "./SwipeableCalendar";
 import { useTheme } from "./Theme/ThemeProvider";
-import Animated, { Easing, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, { Easing, runOnJS, set, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
+import WeekRow from "./WeekRow";
 
 const HomeScreen = () => {
     const initialDate = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(initialDate)
     const [selectedDate, setSelectDate] = useState(initialDate)
     const systemColors = useTheme()
+    const [isOpen, setIsOpen] = useState(false)
 
     //Gesture Handeler for the calendar
     const y = useSharedValue(0)
@@ -22,21 +24,31 @@ const HomeScreen = () => {
         startY: number
     }
 
+    const changeIsOpen = (input: boolean) => {
+        console.log(input)
+        setIsOpen(input)
+    }
+
     const gestureHandler = useAnimatedGestureHandler<
         PanGestureHandlerGestureEvent,
         GestureCTX
     >({
         onStart: (_, ctx) => {
             ctx.startY = y.value
+            runOnJS(changeIsOpen)(false)
+            console.log("run 2")
         },
         onActive: (event, ctx) => {
-            if(ctx.startY + event.translationY < 601 && ctx.startY + event.translationY > 120) {
+            if(ctx.startY + event.translationY < 601 && ctx.startY + event.translationY > 100) {
                 y.value = ctx.startY + event.translationY
             }
-            console.log(y.value)
+            // console.log(y.value)
         },
         onEnd: () => {
-            y.value >= 450 ? y.value = withTiming(600, { easing: Easing.out(Easing.exp) }) : y.value = withTiming(120, { easing: Easing.out(Easing.exp) })
+            y.value >= 450 ? y.value = withTiming(600, { easing: Easing.out(Easing.exp) }) : y.value = withTiming(100, { easing: Easing.out(Easing.exp) })
+            y.value >= 450 ? runOnJS(changeIsOpen)(true) : runOnJS(changeIsOpen)(false)
+            //console.log(y.value >= 450)
+            //console.log(isOpen)
         }
     })
     
@@ -103,15 +115,16 @@ const HomeScreen = () => {
         <View style={styles.container}>
             <StatusBar style="auto" />
             <View style={[styles.calendarView, {backgroundColor: systemColors.background}]}>
-                <Animated.View style={[animatedStyle, styles.shadow, {position: "absolute", zIndex: 1, top: 0, width: "100%", height: 120, backgroundColor: systemColors.background, borderBottomLeftRadius: 30, borderBottomRightRadius: 30}]} {...gestureHandler} >
-                    <SwipeableCalendar 
+                <Animated.View style={[animatedStyle, styles.shadow, {position: "absolute", zIndex: 1, top: 0, width: "100%", height: 100, backgroundColor: systemColors.background, borderBottomLeftRadius: 30, borderBottomRightRadius: 30}]} {...gestureHandler} >
+                    {/* <SwipeableCalendar 
                         activeIndicies={activeIndicies} 
                         selectedDate={new Date(selectedDate)} 
                         setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  
                         forDate={new Date(currentDate)} 
                         decrement={decrementDate} 
                         increment={incrementDate} 
-                    /> 
+                    />  */}
+                    <Calendar isOpen={isOpen}/>
                     <View style={{flex: 1}} />
                         <PanGestureHandler onGestureEvent={gestureHandler} hitSlop={{top: 5, bottom: 5, left: 50, right: 50}}>
                             <Animated.View>
@@ -119,17 +132,27 @@ const HomeScreen = () => {
                             </Animated.View>
                         </PanGestureHandler>
                 </Animated.View>
-                <View style={{height: 120}} />
+                <View style={{height: 100}} />
                 <AssignmentsView assignments={assignments} selectedDate={currentDate} />
             </View>
         </View>
     );
 }
 
-const Calendar = () => {
-    const [selectedDate, updateSelectedDate] = useState(new Date(Date.now()))
+interface CalendarProps {
+    isOpen: boolean
+}
 
+const Calendar = (props: CalendarProps) => {
+    const [selectedDate, updateSelectedDate] = useState(new Date(Date.now()))
+    const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
     //make a list
+
+    // useLayoutEffect(() => {
+    //     flatListRef.current !== null ?? flatListRef.current?.scrollToIndex({animated: false, index: 10})
+    // }, [])
+
+    const [height, setHeight] = useState(0)
 
     //create a function that accepts a month and year as input
     //it should make a list of date objects within that month as date objects, 
@@ -170,24 +193,25 @@ const Calendar = () => {
     }
 
     const renderItem = (item: (Date|null)[]) => {
-        console.log(item)
+        // console.log(item)
         return (
-            <View style={styles.calendarTitleRow}>
-                <Text>{item[0]?item[0].getDate():""}</Text>
-                <Text>{item[1]?item[1].getDate():""}</Text>
-                <Text>{item[2]?item[2].getDate():""}</Text>
-                <Text>{item[3]?item[3].getDate():""}</Text>
-                <Text>{item[4]?item[4].getDate():""}</Text>
-                <Text>{item[5]?item[5].getDate():""}</Text>
-                <Text>{item[6]?item[6].getDate():""}</Text>
-            </View>
+            // <View style={styles.calendarTitleRow}>
+            //     <Text>{item[0]?item[0].getDate():""}</Text>
+            //     <Text>{item[1]?item[1].getDate():""}</Text>
+            //     <Text>{item[2]?item[2].getDate():""}</Text>
+            //     <Text>{item[3]?item[3].getDate():""}</Text>
+            //     <Text>{item[4]?item[4].getDate():""}</Text>
+            //     <Text>{item[5]?item[5].getDate():""}</Text>
+            //     <Text>{item[6]?item[6].getDate():""}</Text>
+            // </View>
+            <WeekRow forDates={item} selectedDate={selectedDate} activeIndicies={[[], [], [], [], [], [], []]} theme={theme} />
         )
     }
 
     const datesArray = getMonthDates(selectedDate)
 
     return (
-        <View style={styles.calendarView}>
+        <View style={styles.calendarView} pointerEvents={props.isOpen?"auto":"none"}>
             <View style={styles.calendarTitleRow} >
                 <Text>Sun</Text>
                 <Text>Mon</Text>
@@ -197,7 +221,16 @@ const Calendar = () => {
                 <Text>Fri</Text>
                 <Text>Sat</Text>
             </View>
-            <VirtualizedList<(Date|null)[]> keyExtractor={(_, index) => {return index.toString()}} data={datesArray} renderItem={({ item }) => renderItem(item)} getItemCount={()=>(Math.floor(datesArray.length/7)+1)} getItem={(data, i)=>data.slice(i*7,i*7+7)} />
+            <VirtualizedList<(Date|null)[]> 
+                keyExtractor={(_, index) => {return index.toString()}}
+                getItemLayout={(_, index) => { return { length: 59, offset: 59 * index, index: index} }}
+                data={datesArray} 
+                renderItem={({ item }) => renderItem(item)} 
+                getItemCount={()=>(Math.floor(datesArray.length/7)+1)} 
+                getItem={(data, i)=>data.slice(i*7,i*7+7)} 
+                showsVerticalScrollIndicator={false}
+                initialScrollIndex={11}
+            />
         </View>
     )
 }
