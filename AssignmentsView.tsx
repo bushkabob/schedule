@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { updateAssignmentCompleted, StoredAssignmentInfo } from "./redux/assingmentsSlice"
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +11,7 @@ import ColorIndicator from "./ColorIndicator";
 import { RootState } from "./redux";
 import { getColor } from "./utils";
 import { useTheme } from "./Theme/ThemeProvider";
+import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
 interface DateAssignments {
     date: string,
@@ -18,9 +19,12 @@ interface DateAssignments {
     assignments: StoredAssignmentInfo[]
 }
 
+type OnScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => void
+
 interface AssignmentViewProps {
     selectedDate: string
     assignments: StoredAssignmentInfo[]
+    scrollHandler: OnScroll
 }
 
 //Main Screen
@@ -177,13 +181,14 @@ const AssignmentsView = (props: AssignmentViewProps) => {
                 <Dialog.Button bold label="Cancel" onPress={()=>handlePress(false)} />
                 <Dialog.Button label="Undo" onPress={()=>handlePress(true)} />
             </Dialog.Container>
-            <FlatList 
+            <Animated.FlatList 
                 keyExtractor={(item: DateAssignments) => {return item.date}} 
                 style={{height: "100%", width: "100%"}}
                 scrollEnabled 
-                data={organizeAssignments(props.assignments)}  
+                data={organizeAssignments(props.assignments)}
                 renderItem={({ item }) => renderItem(item)}
                 ListFooterComponent={() => <View style={{height: 50}} />}
+                onScroll={props.scrollHandler}
             />
         </View>
     )

@@ -5,7 +5,7 @@ import AssignmentsView from "./AssignmentsView";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
 import { useTheme } from "./Theme/ThemeProvider";
-import Animated, { Easing, runOnJS, SharedValue, useAnimatedGestureHandler, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, { Easing, runOnJS, SharedValue, useAnimatedGestureHandler, useAnimatedProps, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
 import WeekRow from "./WeekRow";
 import { ExpandableCalendar, CalendarProvider, WeekCalendar } from "react-native-calendars";
@@ -24,45 +24,20 @@ const HomeScreen = () => {
     const systemColors = useTheme()
     const [openState, setOpenState] = useState(OpenState.CLOSED)
 
-    //Gesture Handeler for the calendar
-    const y = useSharedValue(0)
+    const offsetVal = useSharedValue(0)
 
-    type GestureCTX = {
-        startY: number
-    }
+    const scrollHandler = useAnimatedScrollHandler((event) => {
+        console.log(event.contentOffset.y)
+        offsetVal.value = event.contentOffset.y
+    })
 
-    const changeIsOpen = (input: OpenState) => {
-        setOpenState(input)
-    }
-
-    // const gestureHandler = useAnimatedGestureHandler<
-    //     PanGestureHandlerGestureEvent,
-    //     GestureCTX
-    // >({
-    //     onStart: (_, ctx) => {
-    //         ctx.startY = y.value
-    //         runOnJS(changeIsOpen)(3)
-    //         console.log("run 2")
-    //     },
-    //     onActive: (event, ctx) => {
-    //         if(ctx.startY + event.translationY < 601 && ctx.startY + event.translationY > 100) {
-    //             y.value = ctx.startY + event.translationY
-    //         }
-    //         // console.log(y.value)
-    //     },
-    //     onEnd: () => {
-    //         y.value >= 450 ? y.value = withTiming(600, { easing: Easing.out(Easing.exp) }) : y.value = withTiming(100, { easing: Easing.out(Easing.exp) })
-    //         y.value >= 450 ? runOnJS(changeIsOpen)(1) : runOnJS(changeIsOpen)(2)
-    //         //console.log(y.value >= 450)
-    //         //console.log(isOpen)
-    //     }
-    // })
-    
-    // const animatedStyle = useAnimatedStyle(() => {
-    //     return {
-    //         height: y.value,
-    //     }
-    // })
+    const animatedStyle = useAnimatedStyle(() => {
+        return offsetVal.value > 0 ? {
+            elevation: 99, shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: {height: 2, width: 0}, zIndex: 99
+        } : {
+            elevation: 1, shadowOpacity: 0.0, shadowRadius: 0, shadowOffset: {height: 2, width: 0}, zIndex: 1
+        }
+    }, [offsetVal])
 
     const date = new Date(currentDate)
     const day = date.getDay()
@@ -128,7 +103,7 @@ const HomeScreen = () => {
         <View style={styles.container}>
             <StatusBar style="auto" />
             <View style={[styles.calendarView, {backgroundColor: systemColors.background}]}>
-                <View style={{backgroundColor: systemColors.background, elevation: 99, shadowColor: '#858F96', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: {height: 2, width: 0}, zIndex: 99}}>
+                <Animated.View style={[{backgroundColor: systemColors.background, shadowColor: "rgb(133, 143, 150)"}, animatedStyle]}>
                     <CalendarProvider onDateChanged={(date) => {setSelectedDate(date)}} date={selectedDate} style={{flex: 0}}>
                         <WeekCalendar key={systemColors.background === lightColors.background ? "Light" : "Dark"} theme={{
                             calendarBackground: systemColors.background,
@@ -139,9 +114,9 @@ const HomeScreen = () => {
                         calendarStyle={styles.shawdowBottom}
                         /> 
                     </CalendarProvider>
-                </View>
+                </Animated.View>
                 
-                <AssignmentsView assignments={assignments} selectedDate={selectedDate} />
+                <AssignmentsView scrollHandler={scrollHandler} assignments={assignments} selectedDate={selectedDate} />
                 {/* <Animated.View style={[animatedStyle, styles.shadow, {position: "absolute", zIndex: 1, top: 0, width: "100%", height: 100, backgroundColor: systemColors.background, borderBottomLeftRadius: 30, borderBottomRightRadius: 30}]} {...gestureHandler} >
                     <SwipeableCalendar 
                         activeIndicies={activeIndicies} 
