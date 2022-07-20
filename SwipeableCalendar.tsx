@@ -12,7 +12,7 @@ interface SwipeableCalendarProps {
     forDate: Date,
     increment: () => void,
     decrement: () => void,
-    setSelecteDate: (date: Date) => void,
+    setSelectedDate: (date: Date) => void,
     selectedDate: Date,
     activeIndicies: number[][]
 }

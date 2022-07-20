@@ -132,7 +132,7 @@ const AssignmentsView = (props: AssignmentViewProps) => {
         const usedClasses = item.assignments.reduce((prev, assignment) => {!prev.includes(assignment.class) && prev.push(assignment.class); return prev}, [] as string[])
         const colors = usedClasses.map((className) => classes.findIndex((classInfo) => classInfo === className))
         return (
-            <View style={{marginTop: 10}} >
+            <View style={{marginTop: 10}}>
                 <View>
                     {item.isFirstofMonth && 
                         <View style={[{marginBottom: 10}, styles.shadow]}> 

@@ -1,49 +1,33 @@
 import { ColorThemeData } from "./redux/colorThemeSlice"
 import { useTheme } from "./Theme/ThemeProvider"
-import { View, Text, StyleSheet } from "react-native"
-import React from "react"
+import { View, Text, StyleSheet, ListRenderItem, BackHandler } from "react-native"
+import React, { useCallback, useMemo } from "react"
 import { getColor } from "./utils"
+import { FlatList, TouchableOpacity } from "react-native-gesture-handler"
 
 interface WeekRowProps {
-    forDates: (Date | null)[],
-    selectedDate: Date,
-    activeIndicies: number[][]
+    dates: (Date | null)[];
+    isSelected: boolean[];
+    currentDate: Date,
+    activeIndicies: number[][],
+    setSelectedDate: (date: string) => void
 }
 
 const WeekRow = (props: WeekRowProps & {theme: ColorThemeData}) => {
-    const systemColors = useTheme()
-    // const getDates = (forDate: Date | null) => {
-    //     if (forDate !== null){
-    //         const month = forDate.getMonth()
-    //         const year = forDate.getFullYear()
-    //         const date = forDate.getDate() - forDate.getDay()
-    //         const dates: [string, Date, boolean][] = []
-    //         const daysOfTheWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-    //         for (let i = 0; i < 7; i++) {
-    //             const newDate = new Date(year, month, date + i)
-    //             dates.push([daysOfTheWeek[i], newDate, newDate.toDateString() === props.selectedDate.toDateString()])
-    //     }
-    //     return dates
-    // }
-    //<Text style={{alignSelf:"center", paddingTop: 10, color: systemColors.textColor}}>{month + ", " + year}</Text>
-    //const dates = getDates(props.forDate)
-    const dates = props.forDates.map((date) => {
-        return {date: date, isSelected: date?.toDateString() === props.selectedDate.toDateString()}
-    })
-    const circleHeight = 5;
-    /*
-    onLayout={(event) => {
-            var {x, y, width, height} = event.nativeEvent.layout;
-            console.log(x + " " + y + " " + width + " " + height)
-        }
-    */
-    return (
-        <View style={[{width: "100%"}, styles.calendarTitleRow]}>
-            {dates.map((item, index) => (
-                <View key={index}>
+    const renderItem: ListRenderItem<Date | null> = ({ item, index }) => {
+        const date = item
+        const isSelected = props.isSelected[index]
+        return callbackRender(date, isSelected, index)
+    }
+
+    const callbackRender = useCallback((date: Date | null, isSelected: boolean, index: number) => {
+        console.log(date)
+        return (
+            <TouchableOpacity onPress={() => {if(date !== null){props.setSelectedDate(date!.toDateString())}}} >
+                <View>
                     <View style={{flexGrow: 1}}>
-                        <View style={[{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', aspectRatio: 1, borderRadius: 60}, item.isSelected?{backgroundColor: systemColors.red}:{}]}>
-                            <Text style={[styles.calendarTitle, {color:item.isSelected?"white":systemColors.textColor}]} key={item.date!==null?item.date.getDate():index}>{item.date!==null?item.date.getDate():""}</Text>
+                        <View style={[{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', aspectRatio: 1, borderRadius: 60}, isSelected?{backgroundColor: systemColors.red}:{}]}>
+                            <Text style={[styles.calendarTitle, {color:isSelected?"white":systemColors.textColor}]} key={date!==null?date.getDate():index}>{date!==null?date.getDate():""}</Text>
                         </View>
                     </View>
                     <View>
@@ -63,12 +47,22 @@ const WeekRow = (props: WeekRowProps & {theme: ColorThemeData}) => {
                         </View>
                     </View>
                 </View>
-            ))}
+            </TouchableOpacity>
+        )
+    }, [])
+
+    const keyExtractor = useCallback((_, index) => index, [])
+
+    const systemColors = useTheme()
+    const circleHeight = 5;
+    return (
+        <View style={[styles.calendarTitleRow]}>
+            <FlatList contentContainerStyle={{width: "100%"}} numColumns={7} keyExtractor={keyExtractor} data={props.dates} renderItem={renderItem}/>
         </View>
     );
 }
 
-export default WeekRow
+export default React.memo(WeekRow)
 
 const styles = StyleSheet.create({
     container: {
@@ -86,6 +80,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingTop: 10,
+        width: "100%",
     },
     calendarTitle: {
         textAlign: 'center',

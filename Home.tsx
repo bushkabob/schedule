@@ -1,21 +1,28 @@
-import { View, StyleSheet, Text, VirtualizedList, Dimensions } from "react-native";
+import { View, StyleSheet, Text, VirtualizedList, Dimensions, ListRenderItem, Platform } from "react-native";
 import { StatusBar } from 'expo-status-bar';
-import {  useEffect, useLayoutEffect, useRef, useState } from "react";
+import {  useEffect, useRef, useState, useMemo, useCallback } from "react";
 import AssignmentsView from "./AssignmentsView";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux";
-import SwipeableCalendar from "./SwipeableCalendar";
 import { useTheme } from "./Theme/ThemeProvider";
-import Animated, { Easing, runOnJS, set, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, { Easing, runOnJS, SharedValue, useAnimatedGestureHandler, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler";
 import WeekRow from "./WeekRow";
+import { ExpandableCalendar, CalendarProvider, WeekCalendar } from "react-native-calendars";
+import { lightColors } from "./Theme/colorThemes";
+
+enum OpenState {
+    OPENED = 1,
+    CLOSED = 2,
+    CHANGING = 3
+}
 
 const HomeScreen = () => {
     const initialDate = new Date().toDateString();
     const [currentDate, setCurrentDate] = useState(initialDate)
-    const [selectedDate, setSelectDate] = useState(initialDate)
+    const [selectedDate, setSelectedDate] = useState(initialDate)
     const systemColors = useTheme()
-    const [isOpen, setIsOpen] = useState(false)
+    const [openState, setOpenState] = useState(OpenState.CLOSED)
 
     //Gesture Handeler for the calendar
     const y = useSharedValue(0)
@@ -24,39 +31,38 @@ const HomeScreen = () => {
         startY: number
     }
 
-    const changeIsOpen = (input: boolean) => {
-        console.log(input)
-        setIsOpen(input)
+    const changeIsOpen = (input: OpenState) => {
+        setOpenState(input)
     }
 
-    const gestureHandler = useAnimatedGestureHandler<
-        PanGestureHandlerGestureEvent,
-        GestureCTX
-    >({
-        onStart: (_, ctx) => {
-            ctx.startY = y.value
-            runOnJS(changeIsOpen)(false)
-            console.log("run 2")
-        },
-        onActive: (event, ctx) => {
-            if(ctx.startY + event.translationY < 601 && ctx.startY + event.translationY > 100) {
-                y.value = ctx.startY + event.translationY
-            }
-            // console.log(y.value)
-        },
-        onEnd: () => {
-            y.value >= 450 ? y.value = withTiming(600, { easing: Easing.out(Easing.exp) }) : y.value = withTiming(100, { easing: Easing.out(Easing.exp) })
-            y.value >= 450 ? runOnJS(changeIsOpen)(true) : runOnJS(changeIsOpen)(false)
-            //console.log(y.value >= 450)
-            //console.log(isOpen)
-        }
-    })
+    // const gestureHandler = useAnimatedGestureHandler<
+    //     PanGestureHandlerGestureEvent,
+    //     GestureCTX
+    // >({
+    //     onStart: (_, ctx) => {
+    //         ctx.startY = y.value
+    //         runOnJS(changeIsOpen)(3)
+    //         console.log("run 2")
+    //     },
+    //     onActive: (event, ctx) => {
+    //         if(ctx.startY + event.translationY < 601 && ctx.startY + event.translationY > 100) {
+    //             y.value = ctx.startY + event.translationY
+    //         }
+    //         // console.log(y.value)
+    //     },
+    //     onEnd: () => {
+    //         y.value >= 450 ? y.value = withTiming(600, { easing: Easing.out(Easing.exp) }) : y.value = withTiming(100, { easing: Easing.out(Easing.exp) })
+    //         y.value >= 450 ? runOnJS(changeIsOpen)(1) : runOnJS(changeIsOpen)(2)
+    //         //console.log(y.value >= 450)
+    //         //console.log(isOpen)
+    //     }
+    // })
     
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            height: y.value,
-        }
-    })
+    // const animatedStyle = useAnimatedStyle(() => {
+    //     return {
+    //         height: y.value,
+    //     }
+    // })
 
     const date = new Date(currentDate)
     const day = date.getDay()
@@ -66,6 +72,7 @@ const HomeScreen = () => {
     const weekStartString = weekStart.toISOString()
     const weekEndString = new Date(date.setDate(weekStart.getDate() + 6)).toISOString()
     const assignments = useSelector((state: RootState) => state.assignments.filter(assignment => !assignment.completed || assignment.date > weekStartString));
+    const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
 
     //create an object that contains that has the dates for the week in the format of "yyyy-mm-dd" as the keys and empty arrays as the values
     const weekDates = Array.from(Array(7).keys()).reduce((acc, _, i) => {
@@ -111,49 +118,67 @@ const HomeScreen = () => {
     //     console.log(event.nativeEvent.translationY)
     // }
 
+    const calendar = useRef<any>(null)
+    const currentDateDate = new Date(currentDate)
+    const selectedDateDate = new Date(selectedDate)
+    selectedDateDate.setDate(selectedDateDate.getDate() - selectedDateDate.getDay())
+    const dates = [selectedDateDate, new Date(selectedDate + 1), new Date(selectedDate + 2), new Date(selectedDate + 3), new Date(selectedDate + 4), new Date(selectedDate + 5), new Date(selectedDate + 6)]
+
     return (
         <View style={styles.container}>
             <StatusBar style="auto" />
             <View style={[styles.calendarView, {backgroundColor: systemColors.background}]}>
-                <Animated.View style={[animatedStyle, styles.shadow, {position: "absolute", zIndex: 1, top: 0, width: "100%", height: 100, backgroundColor: systemColors.background, borderBottomLeftRadius: 30, borderBottomRightRadius: 30}]} {...gestureHandler} >
-                    {/* <SwipeableCalendar 
+                <View style={{backgroundColor: systemColors.background, elevation: 99, shadowColor: '#858F96', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: {height: 2, width: 0}, zIndex: 99}}>
+                    <CalendarProvider onDateChanged={(date) => {setSelectedDate(date)}} date={selectedDate} style={{flex: 0}}>
+                        <WeekCalendar key={systemColors.background === lightColors.background ? "Light" : "Dark"} theme={{
+                            calendarBackground: systemColors.background,
+                            backgroundColor: systemColors.background,
+                            dayTextColor: systemColors.textColor
+                        }}
+                        allowShadow={false}
+                        calendarStyle={styles.shawdowBottom}
+                        /> 
+                    </CalendarProvider>
+                </View>
+                
+                <AssignmentsView assignments={assignments} selectedDate={selectedDate} />
+                {/* <Animated.View style={[animatedStyle, styles.shadow, {position: "absolute", zIndex: 1, top: 0, width: "100%", height: 100, backgroundColor: systemColors.background, borderBottomLeftRadius: 30, borderBottomRightRadius: 30}]} {...gestureHandler} >
+                    <SwipeableCalendar 
                         activeIndicies={activeIndicies} 
                         selectedDate={new Date(selectedDate)} 
                         setSelecteDate={(date:Date)=>{setSelectDate(date.toDateString())}}  
                         forDate={new Date(currentDate)} 
                         decrement={decrementDate} 
                         increment={incrementDate} 
-                    />  */}
-                    <Calendar isOpen={isOpen}/>
+                    />
+                    <Calendar openState={openState} selectedDate={selectedDate} currentDate={currentDate} setSelectedDate={setSelectedDate} />
                     <View style={{flex: 1}} />
                         <PanGestureHandler onGestureEvent={gestureHandler} hitSlop={{top: 5, bottom: 5, left: 50, right: 50}}>
                             <Animated.View>
                                 <View style={[styles.pullTab, {backgroundColor: systemColors.systemGray}]} />
                             </Animated.View>
                         </PanGestureHandler>
-                </Animated.View>
-                <View style={{height: 100}} />
-                <AssignmentsView assignments={assignments} selectedDate={currentDate} />
+                </Animated.View> */}
+                {/* <View style={{height: 100}} /> */}
             </View>
         </View>
     );
 }
 
 interface CalendarProps {
-    isOpen: boolean
+    openState: OpenState
+    selectedDate: string
+    currentDate: string
+    setSelectedDate: (date: string) => void
 }
 
 const Calendar = (props: CalendarProps) => {
-    const [selectedDate, updateSelectedDate] = useState(new Date(Date.now()))
     const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
-    //make a list
-
-    // useLayoutEffect(() => {
-    //     flatListRef.current !== null ?? flatListRef.current?.scrollToIndex({animated: false, index: 10})
-    // }, [])
-
-    const [height, setHeight] = useState(0)
-
+    const flatListRef = useRef<VirtualizedList<(Date|null)[]>>(null)
+    const selectedDate = new Date(props.selectedDate)
+    const currentDate = new Date(props.currentDate)
+    console.log(props.openState)
+    
     //create a function that accepts a month and year as input
     //it should make a list of date objects within that month as date objects, 
     //it should add one null to the beginning of the list for each day removed the first day of the month is from the start of the week
@@ -182,6 +207,12 @@ const Calendar = (props: CalendarProps) => {
         return dates;
     }
 
+    useEffect(() => {
+        if(props.openState===OpenState.CHANGING){
+            flatListRef.current?.scrollToIndex({ animated: true, index: 11 })
+        }
+    })
+
     //create a function that accepts a date as input
     //it should run the getDates function on the date's month and year
     //it should also run it using the two months prior to and the two months after the date's month
@@ -192,26 +223,26 @@ const Calendar = (props: CalendarProps) => {
         return [...getDates(month-2, year), ...getDates(month-1, year), ...getDates(month, year), ...getDates(month+1, year), ...getDates(month+2, year)]
     }
 
-    const renderItem = (item: (Date|null)[]) => {
-        // console.log(item)
-        return (
-            // <View style={styles.calendarTitleRow}>
-            //     <Text>{item[0]?item[0].getDate():""}</Text>
-            //     <Text>{item[1]?item[1].getDate():""}</Text>
-            //     <Text>{item[2]?item[2].getDate():""}</Text>
-            //     <Text>{item[3]?item[3].getDate():""}</Text>
-            //     <Text>{item[4]?item[4].getDate():""}</Text>
-            //     <Text>{item[5]?item[5].getDate():""}</Text>
-            //     <Text>{item[6]?item[6].getDate():""}</Text>
-            // </View>
-            <WeekRow forDates={item} selectedDate={selectedDate} activeIndicies={[[], [], [], [], [], [], []]} theme={theme} />
-        )
+    const renderItem: ListRenderItem<(Date|null)[]> = ({ item }) => {
+        const isSelected = item.map((date) => {
+            return  date?.toDateString() === props.selectedDate
+        })
+        return renderCallback(item, isSelected)
     }
 
-    const datesArray = getMonthDates(selectedDate)
+    const renderCallback = useCallback((item: (Date | null)[], isSelected: boolean[]) => {
+        return (
+            <WeekRow dates={item} isSelected={isSelected} currentDate={currentDate} activeIndicies={[[], [], [], [], [], [], []]} theme={theme} setSelectedDate={props.setSelectedDate} />
+        )
+    }, [])
+    
+    const keyExtractor = useCallback((_, index) => {return index.toString()}, [])
+    const getItemLayout = useCallback((_, index) => { return { length: 59, offset: 59 * index, index: index} }, [])
 
+    //pointerEvents={props.openState===OpenState.OPENED?"auto":"none"}
+    const datesArray = getMonthDates(currentDate)
     return (
-        <View style={styles.calendarView} pointerEvents={props.isOpen?"auto":"none"}>
+        <View style={styles.calendarView} >
             <View style={styles.calendarTitleRow} >
                 <Text>Sun</Text>
                 <Text>Mon</Text>
@@ -221,16 +252,19 @@ const Calendar = (props: CalendarProps) => {
                 <Text>Fri</Text>
                 <Text>Sat</Text>
             </View>
-            <VirtualizedList<(Date|null)[]> 
-                keyExtractor={(_, index) => {return index.toString()}}
-                getItemLayout={(_, index) => { return { length: 59, offset: 59 * index, index: index} }}
+            {
+            <VirtualizedList<(Date|null)[]>
+                keyExtractor={keyExtractor}
+                getItemLayout={getItemLayout}
                 data={datesArray} 
-                renderItem={({ item }) => renderItem(item)} 
+                renderItem={renderItem} 
                 getItemCount={()=>(Math.floor(datesArray.length/7)+1)} 
                 getItem={(data, i)=>data.slice(i*7,i*7+7)} 
                 showsVerticalScrollIndicator={false}
                 initialScrollIndex={11}
+                ref = {flatListRef}
             />
+            }
         </View>
     )
 }
@@ -259,6 +293,20 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 }, 
         shadowOpacity: 0.3, 
         shadowRadius: 4
+    },
+    shawdowBottom: {
+        ...Platform.select({
+            ios: {
+              shadowColor: '#858F96',
+              shadowOpacity: 0.25,
+              shadowRadius: 10,
+              shadowOffset: {height: 2, width: 0},
+              zIndex: 99
+            },
+            android: {
+              elevation: 3
+            }
+          })
     },
     calendarTitleRow: {
         flexDirection: 'row',
