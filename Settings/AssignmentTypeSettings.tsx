@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../redux';
 import { addAssignmentType, removeAssignmentType, reorderAssignmentTypes } from '../redux/assignmentTypeSlice';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
+import { useTheme } from '../Theme/ThemeProvider';
 
 const RightAction = () => (
     <View style={{backgroundColor: "red", width: "100%", alignItems: "flex-end", justifyContent: "center", padding: 10}}>
@@ -20,14 +21,6 @@ interface HeaderRightProps {
     updateEnteringClass: (value: React.SetStateAction<boolean>) => void
 }
 
-const HeaderRight = (props: HeaderRightProps) => {
-    return (
-        <TouchableOpacity onPress={() => {props.updateEnteringClass(true)}}>
-            <Ionicons name="add" size={32}/>
-        </TouchableOpacity>
-    )
-}
-
 const UserDefinedSettings = () => {
     //const [classes, updateClasses] = useState<string[]>([]);
     const availableOptions = useSelector((state: RootState) => state.assignmentTypes)
@@ -35,6 +28,15 @@ const UserDefinedSettings = () => {
     const [isEntering, updateEntering] = useState(false);
     const [newItem, updateNewItem] = useState("");
     const navigation = useNavigation()
+    const systemColors = useTheme()
+
+    const HeaderRight = (props: HeaderRightProps) => {
+        return (
+            <TouchableOpacity onPress={() => {props.updateEnteringClass(true)}}>
+                <Ionicons name="add" color={systemColors.textColor} size={32}/>
+            </TouchableOpacity>
+        )
+    }
 
     const renderRow = (item: string, index: number | undefined, drag: ()=>void, isActive: boolean): JSX.Element => {
         return (

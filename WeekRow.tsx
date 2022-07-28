@@ -21,7 +21,6 @@ const WeekRow = (props: WeekRowProps & {theme: ColorThemeData}) => {
     }
 
     const callbackRender = useCallback((date: Date | null, isSelected: boolean, index: number) => {
-        console.log(date)
         return (
             <TouchableOpacity onPress={() => {if(date !== null){props.setSelectedDate(date!.toDateString())}}} >
                 <View>

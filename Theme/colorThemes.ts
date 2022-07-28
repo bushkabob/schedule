@@ -1,5 +1,6 @@
 // Light theme colors
 export const lightColors = {
+    mode: 'light',
     background: '#FFFFFF',
     elevated: 'rgb(242, 242, 247)',
     textColor: '#000000',
@@ -28,6 +29,7 @@ export const lightColors = {
   
   // Dark theme colors
   export const darkColors = {
+    mode: 'dark',
     background: 'rgb(0, 0, 0)',
     elevated: 'rgb(28, 28, 30)',
     textColor: 'rgb(255, 255, 255)',

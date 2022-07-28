@@ -8,11 +8,12 @@ export type RootStackParamList = {
   AddClass: {};
   AddAssignmentNavigator: {};
   EditAssignmentTypes: {};
-  AddAssignment: { assignment: StoredAssignmentInfo };
+  AddAssignment: { assignment: StoredAssignmentInfo, selectedData?: {category: string, selectedString: string} };
   SelectListOption: { options: string[], selected: string, updateSelected: (selectedValue: string) => void /*category: selectType*/ };
   ColorTheme: {};
   EditColorTheme: { initialData?: {isEditable: boolean, colors: string[], name: string}, selectedColorData?: { color: string, index: number, name: string } };
   SelectColor: { selectedColor: string, index: number, name: string };
+  CalendarNavigator: {};
 };
 
 export type HomeProps = NativeStackNavigationProp<RootStackParamList, 'Home'>;

@@ -1,5 +1,5 @@
-import { View, Text, FlatList, StyleSheet, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { View, Text, FlatList, StyleSheet, NativeSyntheticEvent, NativeScrollEvent, Appearance } from "react-native";
+import { useState, useEffect, useRef, forwardRef, ForwardedRef, memo } from "react";
 import { updateAssignmentCompleted, StoredAssignmentInfo } from "./redux/assingmentsSlice"
 import { useDispatch, useSelector } from "react-redux";
 import { Accelerometer } from 'expo-sensors';
@@ -11,7 +11,7 @@ import ColorIndicator from "./ColorIndicator";
 import { RootState } from "./redux";
 import { getColor } from "./utils";
 import { useTheme } from "./Theme/ThemeProvider";
-import Animated, { useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, { useAnimatedScrollHandler } from "react-native-reanimated";
 
 interface DateAssignments {
     date: string,
@@ -22,42 +22,37 @@ interface DateAssignments {
 type OnScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => void
 
 interface AssignmentViewProps {
-    selectedDate: string
-    assignments: StoredAssignmentInfo[]
-    scrollHandler: OnScroll
+    assignments: scrollItem[]
+    updateSharedValue: (val: number) => void
+    themeMode: string
+    secondaryCheck: string
+}
+
+interface scrollItem {
+    date: string;
+    isFirstofMonth: boolean;
+    assignments: StoredAssignmentInfo[];
 }
 
 //Main Screen
-const AssignmentsView = (props: AssignmentViewProps) => {
+const AssignmentsView = forwardRef((props: AssignmentViewProps, ref: ForwardedRef<FlatList<any>>) => {
     const dispatch = useDispatch();
     const [oldAssignment, setOldAssignment] = useState<StoredAssignmentInfo>()
-    const [subscription, setSubscription] = useState<Subscription|null>(null);
+    //const [subscription, setSubscription] = useState<Subscription|null>(null);
     const swipeableRefs = useRef<{[key:string]:Swipeable|null}>({})
     const [prevOpenedRow, setPrevOpenedRow] = useState<Swipeable | null>(null)
     const [dialogVisible, setDialogVisible] = useState(false)
     const systemColors = useTheme()
+    // const scrollHandler = useAnimatedScrollHandler({
+    //     onScroll(event) {
+    //         console.log(event.contentOffset.y)
+    //         props.updateSharedValue(event.contentOffset.y)
+    //     },
+    // })
 
     //Class colors
     const theme = useSelector((state: RootState) => state.colorTheme.colorThemes.filter((colorTheme) => colorTheme.name === state.colorTheme.selected)[0])
     const classes = useSelector((state: RootState) => state.classes)
-
-    //organize the asssignments into an array that contains objects with the date and the assignments for that date
-    const organizeAssignments = (assignments: StoredAssignmentInfo[]) => {
-        const organizedAssignments: { date: string, isFirstofMonth: boolean, assignments: StoredAssignmentInfo[] }[] = [];
-        var currentMonth = 0;
-        assignments.forEach((assignment) => {
-            const assignmentDate = new Date(assignment.date)
-            const assignmentIndex = organizedAssignments.findIndex((assignment) => assignment.date === assignmentDate.toDateString());
-            if (assignmentIndex === -1) {
-                const monthMatch = assignmentDate.getMonth() === currentMonth;
-                organizedAssignments.push({ date: assignmentDate.toDateString(), assignments: [assignment], isFirstofMonth: !monthMatch })
-                currentMonth = assignmentDate.getMonth();
-            } else {
-                organizedAssignments[assignmentIndex].assignments.push(assignment)
-            }
-        })
-        return organizedAssignments;
-    }
 
     //Accelerometer code
     const [data, setData] = useState({
@@ -66,39 +61,39 @@ const AssignmentsView = (props: AssignmentViewProps) => {
         z: 0,
     });
 
-    useEffect(() => {
-        const acceleration = Math.sqrt(data.x * data.x + data.y * data.y + data.z * data.z);
-        if (acceleration > 3) {
-            console.log("shake")
-            handleShake();
-        }
-    }, [data])
+    // useEffect(() => {
+    //     const acceleration = Math.sqrt(data.x * data.x + data.y * data.y + data.z * data.z);
+    //     if (acceleration > 3) {
+    //         console.log("shake")
+    //         handleShake();
+    //     }
+    // }, [data])
 
-    useEffect(() => {
-        _subscribe();
-        return () => _unsubscribe();
-    }, []);
+    // useEffect(() => {
+    //     _subscribe();
+    //     return () => _unsubscribe();
+    // }, []);
 
-    const _subscribe = () => {
-        setSubscription(
-            Accelerometer.addListener(accelerometerData => {
-                setData(accelerometerData);
-            })
-        );
-        Accelerometer.setUpdateInterval(100);
-    };
+    // const _subscribe = () => {
+    //     setSubscription(
+    //         Accelerometer.addListener(accelerometerData => {
+    //             setData(accelerometerData);
+    //         })
+    //     );
+    //     Accelerometer.setUpdateInterval(100);
+    // };
 
-    const _unsubscribe = () => {
-        subscription && subscription.remove();
-        setSubscription(null);
-    };
+    // const _unsubscribe = () => {
+    //     subscription && subscription.remove();
+    //     setSubscription(null);
+    // };
 
-    //undo last change if the user shakes their device
-    const handleShake = () => {
-        if (typeof oldAssignment !== "undefined") {
-            setDialogVisible(true)
-        }
-    }
+    // //undo last change if the user shakes their device
+    // const handleShake = () => {
+    //     if (typeof oldAssignment !== "undefined") {
+    //         setDialogVisible(true)
+    //     }
+    // }
 
     //end of accelerometer code
 
@@ -122,7 +117,6 @@ const AssignmentsView = (props: AssignmentViewProps) => {
 
     const closeRow = (id: string) => {
         if (prevOpenedRow && prevOpenedRow !== swipeableRefs.current[id]) {
-            console.log("close")
             prevOpenedRow.close();
         }
         setPrevOpenedRow(swipeableRefs.current[id]);
@@ -170,7 +164,7 @@ const AssignmentsView = (props: AssignmentViewProps) => {
             </View>
         )
     }
-
+    // TODO: Why does this work?? 
     return (
         <View style={styles.assingmentView}>
             <Dialog.Container visible={dialogVisible} onBackdropPress={()=>handlePress(false)} >
@@ -181,20 +175,42 @@ const AssignmentsView = (props: AssignmentViewProps) => {
                 <Dialog.Button bold label="Cancel" onPress={()=>handlePress(false)} />
                 <Dialog.Button label="Undo" onPress={()=>handlePress(true)} />
             </Dialog.Container>
-            <Animated.FlatList 
+            <FlatList
                 keyExtractor={(item: DateAssignments) => {return item.date}} 
                 style={{height: "100%", width: "100%"}}
                 scrollEnabled 
-                data={organizeAssignments(props.assignments)}
-                renderItem={({ item }) => renderItem(item)}
+                data={props.assignments}
+                renderItem={({ item } : {item: scrollItem}) => renderItem(item)}
                 ListFooterComponent={() => <View style={{height: 50}} />}
-                onScroll={props.scrollHandler}
+                //onScroll={scrollHandler}
+                //getItemLayout={(data: DateAssignments, index: number) => {return {length: 100, offset: 100 * index, index}}}
+                onScrollToIndexFailed={()=>{console.log("Scroll failed")}}
+                ref={ref}
+                key={props.themeMode}
             />
         </View>
     )
-}
+})
 
 //Assignment Cell Content w/ swipeable functionality
+// const areEqual = (prevProps: AssignmentViewProps, nextProps: AssignmentViewProps) => {
+//     const checkElement = (val1: StoredAssignmentInfo[], val2:StoredAssignmentInfo[]) => {
+//         return val1.reduce((prev, curr, index) => {
+//             return prev && JSON.stringify(curr) === JSON.stringify(val2[index])
+//         }, true)
+//     }
+//     const same = prevProps.assignments.reduce((prev, curr, index) => {
+//         //console.log(checkElement(curr.assignments, nextProps.assignments[index].assignments))
+//         if(nextProps.assignments.length > index){
+//             return prev && checkElement(curr.assignments, nextProps.assignments[index].assignments)
+//         } else {
+//             return false
+//         }
+//         //curr.assignments === nextProps.assignments[index].assignments
+//     }, true)
+//     const match = same && prevProps.themeMode === nextProps.themeMode
+//     return match
+// };
 
 export default AssignmentsView;
 

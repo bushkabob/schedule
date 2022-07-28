@@ -1,4 +1,4 @@
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsProps, AddAssignmentNavigatorProps } from "./types";
@@ -8,10 +8,15 @@ export const HomeHeaderRight = () => {
     const systemColors = useTheme()
     const navigation = useNavigation<AddAssignmentNavigatorProps>()
     return (
-        <TouchableOpacity onPress={() => navigation.navigate("AddAssignmentNavigator",{})}>
-            <Ionicons name="add" color={systemColors.textColor} size={32}/>
-        </TouchableOpacity>
-    )
+        <View style={{flexDirection: "row", justifyContent: "center", alignItems: "center"}} >
+            <TouchableOpacity style={{paddingRight: 5}} onPress={() => navigation.navigate("CalendarNavigator",{})}>
+                <Ionicons name="md-calendar" color={systemColors.textColor} size={26} />
+            </TouchableOpacity>
+            <TouchableOpacity style={{paddingLeft: 5}} onPress={() => navigation.navigate("AddAssignmentNavigator",{})}>
+                <Ionicons name="add" color={systemColors.textColor} size={32}/>
+            </TouchableOpacity>
+        </View>
+    )  
 }
 
 export const HomeHeaderLeft = () => {

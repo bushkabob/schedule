@@ -3,8 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { selectType } from './AddAssingment';
 
 export type RootStackParamList = {
-  AddAssignment: { /*selectedOption: { title: string, category: selectType } | undefined*/ };
-  SelectListOption: { options: string[], selected: string, updateSelected: (selectedValue: string) => void /*category: selectType*/ };
+  AddAssignment: { selectedData?: {category: string, selectedString: string} /*selectedOption: { title: string, category: selectType } | undefined*/ };
+  SelectListOption: { name: string, options: string[], selected: string /*category: selectType*/ };
 };
 
 export type AddAssignmentProps = NativeStackNavigationProp<RootStackParamList, 'AddAssignment'>;

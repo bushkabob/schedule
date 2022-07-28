@@ -83,7 +83,7 @@ const AddColorTheme = () => {
         });
         // Return the function to unsubscribe from the event so it gets removed on unmount
         return unsubscribe;
-      });
+    });
 
     //End of code to update the color based on the selected color
 

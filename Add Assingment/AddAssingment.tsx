@@ -2,7 +2,7 @@ import { View, StyleSheet, Button } from 'react-native'
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { TableView, Cell, Separator } from 'react-native-tableview-simple';
 import { SyntheticEvent, useLayoutEffect, useState } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { SelectScreenProps } from './types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux';
@@ -41,7 +41,7 @@ const AddAssingment = () => {
     const [datePickerVisible, setDatePickerVisible] = useState(pickerState.none);
     const navigation = useNavigation<SelectScreenProps>()
     const systemColors = useTheme()
-
+    
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: ()=><Button title={typeof assignment !== "undefined" ? 'Update' : 'Add'} onPress={onPress} />,
@@ -49,6 +49,19 @@ const AddAssingment = () => {
             headerLeft: typeof assignment !== "undefined" ? undefined : ()=><Button title='Cancel' onPress={() => navigation.goBack()} />
         })
     }, [selectedClass, assignmentName, selectedType, selectedClass, selectedDay])
+
+    useFocusEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            if(route.params.selectedData && route.params.selectedData.category === "Select Type"){
+                setType(route.params.selectedData.selectedString)
+            }
+            if(route.params.selectedData && route.params.selectedData.category === "Select Class"){
+                setSelectedClass(route.params.selectedData.selectedString)
+            }
+        });
+        // Return the function to unsubscribe from the event so it gets removed on unmount
+        return unsubscribe;
+    })
 
     const onPress = () => {
         typeof assignment !== "undefined" ? updateAssignmentData(assignment.id, assignment.completed) : saveAssignmentData()
@@ -87,9 +100,9 @@ const AddAssingment = () => {
                         <TextInput defaultValue={assignmentName} placeholder='Assignment Name' allowFontScaling style={[styles.textInput, {color: systemColors.textColor}]} onChangeText={(text)=>(setAssingmentName(text))} />
                     } />
                     <Separator />
-                    <Cell cellStyle="RightDetail" title="Class" detail={selectedClass} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { options: classOptions, selected: selectedClass, updateSelected: (value: string) => setSelectedClass(value)})}/>
+                    <Cell cellStyle="RightDetail" title="Class" detail={selectedClass} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { name: "Select Class", options: classOptions, selected: selectedClass })}/>
                     <Separator/>
-                    <Cell cellStyle="RightDetail" title="Assignment Type" detail={selectedType} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { options: typeOptions, selected: selectedType, updateSelected: (value: string) => setType(value)})}/>
+                    <Cell cellStyle="RightDetail" title="Assignment Type" detail={selectedType} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { name: "Select Type", options: typeOptions, selected: selectedType })}/>
                     <Separator />
                     <Cell cellStyle="RightDetail" title="Due Date" detail={new Date(selectedDay).toLocaleDateString()} onPress={()=>datePickerVisible===pickerState.date?setDatePickerVisible(pickerState.none):setDatePickerVisible(pickerState.date)} />
                     <Separator isHidden={(datePickerVisible === pickerState.time)} />
