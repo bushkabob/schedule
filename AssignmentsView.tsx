@@ -178,10 +178,20 @@ const AssignmentsView = forwardRef((props: AssignmentViewProps, ref: ForwardedRe
             <FlatList
                 keyExtractor={(item: DateAssignments) => {return item.date}} 
                 style={{height: "100%", width: "100%"}}
-                scrollEnabled 
+                scrollEnabled={props.assignments.length > 0}
                 data={props.assignments}
                 renderItem={({ item } : {item: scrollItem}) => renderItem(item)}
                 ListFooterComponent={() => <View style={{height: 50}} />}
+                ListEmptyComponent={
+                    () => (
+                        <View style={{flex: 1, justifyContent: "center", paddingBottom: 40}} >
+                            <Text style={{textAlignVertical: "center", textAlign: "center", fontSize: 24, color: systemColors.systemGray4}}>
+                                Assingments Will Appear Here
+                            </Text>
+                        </View>
+                    ) 
+                }
+                contentContainerStyle={{flexGrow: 1}}
                 //onScroll={scrollHandler}
                 //getItemLayout={(data: DateAssignments, index: number) => {return {length: 100, offset: 100 * index, index}}}
                 onScrollToIndexFailed={()=>{console.log("Scroll failed")}}
@@ -219,6 +229,7 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
         alignItems: "center",
+        justifyContent: "center",
     },
     shadow: {
         // shadowColor: '#000', 

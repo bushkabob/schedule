@@ -1,17 +1,19 @@
-import { View, StyleSheet, Button } from 'react-native'
+import { View, StyleSheet, Button, GestureResponderEvent, Alert, Text } from 'react-native'
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { TableView, Cell, Separator } from 'react-native-tableview-simple';
-import { SyntheticEvent, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { SelectScreenProps } from './types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux';
+import MaskedView from '@react-native-masked-view/masked-view';
 
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { addAssignment, updateAssignment } from '../redux/assingmentsSlice'
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { addAssignment, StoredAssignmentInfo, updateAssignment } from '../redux/assingmentsSlice'
 import { AddAssignmentRouteProps } from '../types';
 import { AddAssignmentRouteProps as AddAssignmentRouteProps2 } from './types';
 import { useTheme } from '../Theme/ThemeProvider';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 enum pickerState {
     none,
@@ -22,6 +24,30 @@ enum pickerState {
 export enum selectType {
     class,
     assignmentType
+}
+
+interface SaveButtonProps {
+    onPress: (event: GestureResponderEvent) => void,
+    assignment: StoredAssignmentInfo | undefined,
+    assingmentName: string,
+    classOptions: string[],
+    typeOptions: string[]
+}
+
+const SaveButton = (props: SaveButtonProps) => {
+    return (
+        <Button 
+            title={typeof props.assignment !== "undefined" ? 'Update' : 'Add'} 
+            onPress={props.onPress} 
+            disabled={(props.assingmentName !== undefined && props.assingmentName === "") || props.assingmentName === undefined || props.classOptions.length === 0 || props.typeOptions.length === 0}
+        />
+    )
+}
+
+const noOptionsAlert = (category: string) => {
+    return (
+        Alert.alert("Error", "There is no " + category + " data. Please add some to add an assingment")
+    )
 }
 
 const AddAssingment = () => {
@@ -44,7 +70,7 @@ const AddAssingment = () => {
     
     useLayoutEffect(() => {
         navigation.setOptions({
-            headerRight: ()=><Button title={typeof assignment !== "undefined" ? 'Update' : 'Add'} onPress={onPress} />,
+            headerRight: ()=><SaveButton classOptions={classOptions} typeOptions={typeOptions} assingmentName={assignmentName} assignment={assignment} onPress={onPress} />,
             headerBackVisible: typeof assignment !== "undefined",
             headerLeft: typeof assignment !== "undefined" ? undefined : ()=><Button title='Cancel' onPress={() => navigation.goBack()} />
         })
@@ -76,7 +102,7 @@ const AddAssingment = () => {
         dispatch(updateAssignment({ assignment: { class: selectedClass, name: assignmentName, type: selectedType, date: selectedDay.toISOString(), completed:  completed}, id: assignmentId }))
     }
 
-    const onDateChange = (_: SyntheticEvent<Readonly<{ timestamp: number; }>, Event>, date: Date | undefined) => {
+    const onDateChange = (event: DateTimePickerEvent, date?: Date | undefined) => {
         const newDate = date ? date : new Date(selectedDay);
         const oldDate = new Date(selectedDay);
         //combine the date of newDate and the time of selectedDay into one date object
@@ -84,13 +110,23 @@ const AddAssingment = () => {
         setSelectedDay(newDateTime);
     }
 
-    const onTimeChange = (_: SyntheticEvent<Readonly<{ timestamp: number; }>, Event>, date: Date | undefined) => {
+    const onTimeChange = (event: DateTimePickerEvent, date?: Date | undefined) => {
         const newDate = date ? date : new Date(selectedDay);
         const oldDate = new Date(selectedDay);
         //combine the date of newDate and the time of selectedDay into one date object
         const newDateTime = new Date(oldDate.getFullYear(), oldDate.getMonth(), oldDate.getDate(), newDate.getHours(), newDate.getMinutes(), newDate.getSeconds());
         setSelectedDay(newDateTime);
     }
+    
+    const timeHeight = useSharedValue(0)
+    const timeStyle = useAnimatedStyle(() => {
+        return {height: withTiming(timeHeight.value, {duration: 100, easing: Easing.linear})}
+    })
+
+    const dateHeight = useSharedValue(0)
+    const dateStyle = useAnimatedStyle(() => {
+        return {height: withTiming(dateHeight.value, {duration: 100, easing: Easing.linear})}
+    })
 
     return(
         <View style={styles.container}>
@@ -100,32 +136,85 @@ const AddAssingment = () => {
                         <TextInput defaultValue={assignmentName} placeholder='Assignment Name' allowFontScaling style={[styles.textInput, {color: systemColors.textColor}]} onChangeText={(text)=>(setAssingmentName(text))} />
                     } />
                     <Separator />
-                    <Cell cellStyle="RightDetail" title="Class" detail={selectedClass} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { name: "Select Class", options: classOptions, selected: selectedClass })}/>
+                    <Cell 
+                        cellStyle="RightDetail" 
+                        title="Class" 
+                        detail={selectedClass} 
+                        accessory="DisclosureIndicator" 
+                        onPress={
+                            ()=>
+                            classOptions.length>0?
+                            navigation.navigate("SelectListOption", { name: "Select Class", options: classOptions, selected: selectedClass })
+                            :
+                             noOptionsAlert('class')
+                        }/>
                     <Separator/>
-                    <Cell cellStyle="RightDetail" title="Assignment Type" detail={selectedType} accessory="DisclosureIndicator" onPress={()=>navigation.navigate("SelectListOption", { name: "Select Type", options: typeOptions, selected: selectedType })}/>
+                    <Cell 
+                        cellStyle="RightDetail" 
+                        title="Assignment Type" 
+                        detail={selectedType} 
+                        accessory="DisclosureIndicator" 
+                        onPress={
+                            ()=>
+                                typeOptions.length>0?
+                                navigation.navigate("SelectListOption", { name: "Select Type", options: typeOptions, selected: selectedType })
+                                :
+                                noOptionsAlert('assignment type')
+                        }/>
                     <Separator />
-                    <Cell cellStyle="RightDetail" title="Due Date" detail={new Date(selectedDay).toLocaleDateString()} onPress={()=>datePickerVisible===pickerState.date?setDatePickerVisible(pickerState.none):setDatePickerVisible(pickerState.date)} />
-                    <Separator isHidden={(datePickerVisible === pickerState.time)} />
-                    {
+                    <Cell 
+                        cellStyle="RightDetail" 
+                        title="Due Date" 
+                        detail={new Date(selectedDay).toLocaleDateString()} 
+                        onPress={() => {
+                            dateHeight.value === 0 ?
+                            (dateHeight.value=200, timeHeight.value = 0):
+                            (dateHeight.value=0)
+                        }} 
+                    />
+                    {/* {
                         datePickerVisible === pickerState.date &&
                         <Cell cellContentView={
                             <View style={styles.container}>
                                 <DateTimePicker mode='date' display='spinner' value={new Date(selectedDay)} onChange={onDateChange} />
                             </View>
                         } />
-                    }
-                    <Separator isHidden={!(datePickerVisible === pickerState.date)} />
-                    <Separator isHidden={!(datePickerVisible === pickerState.time)} />
-                    <Cell cellStyle="RightDetail" title="Time " detail={new Date(selectedDay).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} onPress={()=>datePickerVisible===pickerState.time?setDatePickerVisible(pickerState.none):setDatePickerVisible(pickerState.time)} />
-                    <Separator isHidden={!(datePickerVisible === pickerState.time)} />
-                    {
-                        datePickerVisible === pickerState.time &&
-                        <Cell cellContentView={
-                            <View style={styles.container}>
-                                <DateTimePicker mode='time' display='spinner' value={new Date(selectedDay)} onChange={onTimeChange} />
-                            </View>
-                        } />
-                    }
+                    } */}
+                    <MaskedView maskElement={<View style={{flex: 1, backgroundColor: 'black'}} />}>
+                        <Animated.View style={[{backgroundColor: "blue"}, dateStyle]}>
+                            <Separator />
+                            <Cell cellContentView={
+                                <View style={styles.container}>
+                                    <DateTimePicker mode='date' display='spinner' value={new Date(selectedDay)} onChange={onDateChange} />
+                                </View>
+                            }
+                            />
+                            <Separator />
+                        </Animated.View>
+                    </MaskedView>
+                    <Separator />
+                    <Cell 
+                        cellStyle="RightDetail" 
+                        title="Time " 
+                        detail={new Date(selectedDay).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} 
+                        onPress={()=>{
+                            timeHeight.value === 0 ?
+                            (timeHeight.value=200, dateHeight.value = 0):
+                            (timeHeight.value=0)
+                        }} 
+                    />
+                    <MaskedView maskElement={<View style={{flex: 1, backgroundColor: 'black'}} />}>
+                        <Animated.View style={[{backgroundColor: "blue"}, timeStyle]}>
+                            <Separator />
+                            <Cell cellContentView={
+                                <View style={styles.container}>
+                                    <DateTimePicker mode='time' display='spinner' value={new Date(selectedDay)} onChange={onTimeChange} />
+                                </View>
+                            }
+                            />
+                            <Separator />
+                        </Animated.View>
+                    </MaskedView>
                 </TableView>
             </ScrollView>
         </View>

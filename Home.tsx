@@ -8,15 +8,16 @@ import { useTheme } from "./Theme/ThemeProvider";
 import Animated, { useSharedValue } from "react-native-reanimated";
 import { CalendarProvider, WeekCalendar } from "react-native-calendars";
 import { lightColors } from "./Theme/colorThemes";
-import { getColor } from "./utils";
+import { getColor, getDateString } from "./utils";
 import { FlatList } from "react-native-gesture-handler";
 import { StoredAssignmentInfo } from "./redux/assingmentsSlice";
 
 const HomeScreen = () => {
-    const initialDate = new Date(Date.now()).toDateString();
+    const initialDate = (new Date(Date.now())).toISOString();
     const [selectedDate, setSelectedDate] = useState(initialDate)
     const systemColors = useTheme()
     const colorScheme = (typeof Appearance.getColorScheme() === "string" ? Appearance.getColorScheme() : "light") as string
+    console.log(Appearance.getColorScheme())
     const [flatListColor, setFlatlistColor] = useState(colorScheme)
 
     const offsetVal = useSharedValue(0)
@@ -112,7 +113,7 @@ const HomeScreen = () => {
             return date.substring(0, 10) <= val.substring(0, 10)
         })
         const assingmentIndex = tempAssingmentIndex === -1 ? reducedAssignments.length - 1 : tempAssingmentIndex
-        flatListRef.current?.scrollToIndex({animated: true, index: assingmentIndex})
+        reducedAssignments.length !== 0 ?? flatListRef.current?.scrollToIndex({animated: true, index: assingmentIndex})
     }
 
     return (
@@ -120,7 +121,7 @@ const HomeScreen = () => {
             <StatusBar style="auto" />
             <View style={[styles.calendarView, {backgroundColor: systemColors.background}]}>
                 <Animated.View style={[{backgroundColor: systemColors.background, shadowColor: "rgb(133, 143, 150)"}]}>
-                    <Text style={{marginTop: 10, fontSize: 16, textAlign: "center", color: systemColors.textColor}}>{(new Date(selectedDate)).toLocaleString('default', { month: 'long', year: "numeric" })}</Text>
+                    <Text style={{marginTop: 10, fontSize: 16, textAlign: "center", color: systemColors.textColor}}>{getDateString(new Date(selectedDate))}</Text>
                     <CalendarProvider 
                         onDateChanged={selectDate} 
                         date={selectedDate}
@@ -137,6 +138,7 @@ const HomeScreen = () => {
                             calendarStyle={styles.shawdowBottom}
                             markingType={"multi-dot"}
                             markedDates={points}
+                            initialDate={selectedDate}
                         /> 
                     </CalendarProvider>
                 </Animated.View>

@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { removeAllAssignments } from "../redux/assingmentsSlice";
 import { useState } from "react";
 import { CellInterface } from "react-native-tableview-simple/lib/typescript/components/Cell";
+import { store } from "../App";
 
 interface CellData {
     title: string,
@@ -22,7 +23,8 @@ const Settings = () => {
         {title: "Classes", func: ()=>navigation.navigate("AddClass",{}), accessory: "DisclosureIndicator"}, 
         {title: "Assignment Type", func: ()=>navigation.navigate("EditAssignmentTypes",{}), accessory: "DisclosureIndicator"}, 
         {title: "Select Color Theme", func: ()=>navigation.navigate("ColorTheme",{}), accessory: "DisclosureIndicator"},
-        {title: "Clear Assignments", func: ()=>{dispatch(removeAllAssignments())}, accessory: undefined}
+        {title: "Clear Assignments", func: ()=>{dispatch(removeAllAssignments())}, accessory: undefined},
+        {title: "Clear All Data", func: ()=>{store.persistor.purge()}, accessory: undefined}
     ]
 
 
